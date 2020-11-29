@@ -1,4 +1,4 @@
-# 小程序
+#  小程序
 
 本文是深入学习小程序的一些个人理解：包括小程序架构原理、优化、各大小程序框架(预编译型、半编译半运行时框架、运行时框架)的一些对比理解等
 
@@ -23,7 +23,7 @@
 
 
 
-## 小程序基础架构
+## 小程序一些需要知道的东西
 
 **基础架构图：**
 
@@ -35,17 +35,30 @@
 
 - webView 视图线程： 处理 wxml 和 wxss，然后显示页面
 
-  在微信小程序中，视图层其实就是一个 iframe，可以通过微信开发者工具-->调试-->调试微信开发者工具打开
+  1、在微信小程序中，视图层其实就是一个 iframe，可以通过微信开发者工具-->调试-->调试微信开发者工具打开
 
   ![](/images/img2.png)
 
 
 
-  而这个 iframe 里面封装的是一些 html 代码，通过在调试开发者工具中执行 document.getElementsByTagName('webview')[0].showDevTools(true, null) 可以看到如下代码：
+​    2、而这个 iframe 里面封装的是一些 html 代码，通过在调试开发者工具中执行 document.getElementsByTagName('webview')[0].showDevTools(true, null) 可以看到如下代码：
 
   ![](/images/img3.png)
 
-  wx-view 这些就类似 web component 组件之类的东西，这些就是真正运行在 iframe 中的东西
+  3、wx-view 这些就类似 web component 组件之类的东西，这些就是真正运行在 iframe 中的东西
+
+ 4、 而解析 wx-view 这些东西依赖于微信的基础库，可以直接在开发者工具里通过 openVendor() 打开基础库文件夹；（每一个 .wxvpkg 文件对应一个基础库，微信小程序是运行在基础库之上的，才可以实现小程序代码的各种解析和各种功能）
+
+![](/images/img4.png)
+
+5、解开 .wxvpkg 包，里面是小程序基础库源码，主要两个模块
+
+- WAWebview：小程序视图层基础库，提供视图层基础能力
+- WAService：小程序逻辑层基础库，提供逻辑层基础能力
+
+6、这里面除了有微信各个版本的基础库，还有两个非常重要的东西，wcc 和 wcsc；**wcc 将 wxml 转换为 html，wcsc 将 wxss 转换为 css**
+
+
 
 - jscore 逻辑线程：js 执行引擎
 
@@ -74,6 +87,18 @@
   2、通过 setState 方式异步更新视图，会使用到 vdom 和高效的 diff 算法，能过有效减少重绘与回流。
 
 
+
+## 小程序基础库
+
+### 基础库整体架构
+
+小程序的基础库是 JavaScript 编写的，基础库提供组件和 API，处理数据绑定、组件系统、事件系统、通信系统等一系列框架逻辑，可以被注入到渲染层和逻辑层运行。在渲染层可以用各类组件组建界面的元素，在逻辑层可以用各类 API 来处理各种逻辑。PageView 可以是 WebView、React-Native-Like、Flutter 来渲染。
+
+架构设计可以参考: [基于小程序技术栈的微信客户端跨平台实践](https://ppt.geekbang.org/slide/show?cid=42&pid=2338)
+
+
+
+![](/images/img5.png)
 
 
 
