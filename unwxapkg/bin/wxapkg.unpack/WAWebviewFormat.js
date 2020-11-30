@@ -3757,7 +3757,12 @@ var __wxTest__ = !1,
   wxRunOnDebug = function(e) {
     e()
   },
-  __wxConfig, Foundation = function(i) {
+  __wxConfig,
+  /**
+   * 基础模块
+   * line: 3765-4013
+   */
+  Foundation = function(i) {
     var n = {};
 
     function o(e) {
@@ -4088,6 +4093,10 @@ var __wxTest__ = !1,
       addGroup: r.addGroup.bind(r)
     }
   }(this),
+  /**
+   * 消息通信模块
+   * line: 4100-4212
+   */
   WeixinJSBridge = function(e) {
     "function" == typeof logxx && logxx("jsbridge start");
     var t, i = "undefined" != typeof __devtoolssubcontext && __devtoolssubcontext;
@@ -4223,6 +4232,10 @@ Foundation.onBridgeReady(function() {
       o = e
     }
   }),
+  /**
+   * 监听 nativeTrans 相关事件
+   * line: 4239-4269
+   */
   function() {
     var o = nativeTrans.enabled;
     if (!o) return __wxConfig && "android" == __wxConfig.platform && console.warn("[NTrans][Slave] nTrans diasbled."), Foundation.onBridgeReady(function() {
@@ -4254,6 +4267,10 @@ Foundation.onBridgeReady(function() {
       })
     })
   }(),
+  /**
+   * 解析配置
+   * line: 4274-4436
+   */
   function(r) {
     var t = JSON.parse,
       i = JSON.stringify,
@@ -4417,6 +4434,10 @@ Foundation.onBridgeReady(function() {
       WeixinJSBridge.on("onWxConfigReady", w)
     }) : Foundation.onLibraryReady(w)
   }(this),
+  /**
+   * 异常捕获（error、onunhandledrejection）
+   * line: 4441-4482
+   */
   function(e) {
     function o(e) {
       Foundation.emit("unhandledRejection", e) || console.error("Uncaught (in promise)", e.reason)
@@ -4459,6 +4480,10 @@ Foundation.onBridgeReady(function() {
       }
     })
   }(this);
+/**
+ * 原生缓冲区
+ * line: 4487-4568
+ */
 var NativeBuffer = function(e) {
     var n = e.WeixinNativeBuffer,
       o = e.getNativeBufferId,
@@ -4543,6 +4568,10 @@ var NativeBuffer = function(e) {
   }(this),
   WeixinNativeBuffer = NativeBuffer,
   NativeBuffer = null,
+  /**
+   * 日志模块：wxConsole、wxPerfConsole、wxNativeConsole、__webviewConsole__
+   * line: 4575-4940
+   */
   wxConsole = ["log", "info", "warn", "error", "debug", "time", "timeEnd", "group", "groupEnd"].reduce(function(e, t) {
     return e[t] = function() {}, e
   }, {}),
@@ -5110,6 +5139,10 @@ var NativeBuffer = function(e) {
       }
     }
   }]),
+  /**
+   * 上报模块
+   * line: 5146-6092
+   */
   Reporter = function(i) {
     var n = {};
 
@@ -6057,6 +6090,10 @@ var NativeBuffer = function(e) {
       traceEndEvent: function() {}
     }
   }]).default,
+  /**
+   * 视图层 API
+   * line: 6097-8806
+   */
   __webViewSDK__ = function(i) {
     var n = {};
 
@@ -8767,6 +8804,10 @@ var NativeBuffer = function(e) {
     t.default = Ot
   }]).default,
   wx = __webViewSDK__.wx,
+  /**
+   * 组件系统
+   * line: 8811-13475
+   */
   exparser = function(i) {
     function n(e) {
       if (o[e]) return o[e].exports;
@@ -13432,6 +13473,14 @@ var NativeBuffer = function(e) {
       }((e.length <= 65536 ? p = p || l(65536) : f = f || l(1048576)).parse("HTML", e) || [], t).c
     }
   }]);
+/**
+ * 框架粘合层
+ * 
+ * 使用 exparser.registerBehavior 和 exparser.registerElement 方法注册内置组件
+ * 转发 window、wx 对象上到事件转发到 exparser
+ * 
+ * line: 13484-71872
+ */
 ! function(i) {
   var n = {};
 
@@ -71821,6 +71870,10 @@ var NativeBuffer = function(e) {
     }
   })
 }, function(e, t) {}, , function(e, t) {}]);
+/**
+ * 虚拟 DOM
+ * line: 71877-77278
+ */
 var __virtualDOMDataThread__ = !1,
   __virtualDOM__ = function(i) {
     var n = {};
@@ -77223,6 +77276,10 @@ var __virtualDOMDataThread__ = !1,
         }), n.default.instance.operationFlow.unblock()
       }
   }]),
+  /**
+   * __webviewEngine__
+   * line: 77281-77809
+   */
   __webviewEngine__ = function(i) {
     var n = {};
 
@@ -77750,6 +77807,10 @@ var __virtualDOMDataThread__ = !1,
       e.jsonInfo && e.jsonInfo.op_info && 1 === Number(e.jsonInfo.op_info.gray_flag) && 0 === __wxConfig.appType && (document.documentElement.style.filter = "grayscale(100%)", document.documentElement.style.webkitFilter = "grayscale(100%)")
     })
   }]);
+/**
+ * 注入默认样式到页面
+ * line: 77814-77835
+ */
 ! function() {
   var t = "@media (prefers-color-scheme:dark){body{background-color:#191919;color:rgba(255,255,255,.8)}}@media (prefers-color-scheme:dark){wx-button{color:#d6d6d6;background-color:#343434}wx-button:after{border-color:#2d2d2d}wx-button[type=default]{color:#d6d6d6;background-color:#343434}wx-button[disabled]{color:rgba(255,255,255,.6)}wx-button[disabled]:not([type]),wx-button[disabled][type=default]{color:rgba(255,255,255,.2);background-color:rgba(255,255,255,.08)}wx-button[type=primary][plain][disabled]{color:rgba(255,255,255,.2);border-color:rgba(255,255,255,.08)}wx-button[type=default][plain]{color:#d6d6d6;border:1px solid #d6d6d6;background-color:transparent}wx-button[type=default][plain][disabled]{color:rgba(255,255,255,.2);border-color:rgba(255,255,255,.2)}.button-hover{color:#d6d6d6;background-color:rgba(255,255,255,.1)}.button-hover[plain]{color:rgba(255,255,255,.05);border-color:rgba(255,255,255,.05);background-color:transparent}.button-hover[type=default]{color:#d6d6d6;background-color:rgba(255,255,255,.1)}.button-hover[type=default][plain]{color:rgba(255,255,255,.05);border-color:rgba(255,255,255,.05);background-color:transparent}}@media (prefers-color-scheme:dark){wx-checkbox .wx-checkbox-input{border:1px solid #656565;background-color:#2c2c2c}wx-checkbox .wx-checkbox-input.wx-checkbox-input-checked{color:#07c160}wx-checkbox .wx-checkbox-input.wx-checkbox-input-disabled{border:1px solid #373737;background-color:#2c2c2c}wx-checkbox .wx-checkbox-input.wx-checkbox-input-disabled.wx-checkbox-input-checked{background-color:#2b2b2b}wx-checkbox .wx-checkbox-input.wx-checkbox-input-disabled:before{color:#6b6b6b}}@media (prefers-color-scheme:dark){.input-placeholder,.input-placeholder-dark{color:rgba(255,255,255,.3)}}@media (prefers-color-scheme:dark){.wx-picker__mask{top:0;height:100%;margin:0 auto;background:linear-gradient(180deg,#2c2c2c 0,rgba(44,44,44,.7) 100%),linear-gradient(180deg,rgba(44,44,44,.7) 0,#2c2c2c 100%);background-position:top,bottom;background-size:100% 102px;background-repeat:no-repeat}.wx-picker__indicator:after,.wx-picker__indicator:before{color:rgba(255,255,255,.05)}.wx-picker__indicator:before{border-top:1px solid rgba(255,255,255,.05)}.wx-picker__indicator:after{border-bottom:1px solid rgba(255,255,255,.05)}}@media (prefers-color-scheme:dark){wx-radio .wx-radio-input{border:1px solid #656565;background-color:#2c2c2c}wx-radio .wx-radio-input.wx-radio-input-checked{background-color:#07c160;border-color:#07c160}wx-radio .wx-radio-input.wx-radio-input-checked:before{color:#fff}wx-radio .wx-radio-input.wx-radio-input-disabled{border-color:#373737;background-color:#2c2c2c}wx-radio .wx-radio-input.wx-radio-input-disabled.wx-radio-input-checked{border-color:#373737;background-color:#2b2b2b}wx-radio .wx-radio-input.wx-radio-input-disabled:before{color:#6b6b6b}}@media (prefers-color-scheme:dark){wx-slider .wx-slider-handle-wrapper{background-color:#393939}wx-slider .wx-slider-track{background-color:#07c160}wx-slider .wx-slider-value{color:#888;font-size:14px;margin-left:1em;text-align:center}wx-slider .wx-slider-disabled .wx-slider-track{background-color:#ccc}wx-slider .wx-slider-disabled .wx-slider-thumb{background-color:#fff;border-color:#ccc}}@media (prefers-color-scheme:dark){wx-switch .wx-switch-input{border:1px solid rgba(120,120,128,.16);background-color:rgba(120,120,128,.16)}wx-switch .wx-switch-input:before{background-color:rgba(120,120,128,.16)}wx-switch .wx-switch-input:after{background-color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.4)}wx-switch .wx-switch-input.wx-switch-input-checked{border-color:#07c160;background-color:#07c160}wx-switch .wx-checkbox-input{border:1px solid #656565;background-color:#2c2c2c;color:#07c160}wx-switch .wx-checkbox-input.wx-checkbox-input-disabled{border:1px solid #373737;background-color:#2c2c2c}wx-switch .wx-checkbox-input.wx-checkbox-input-disabled:before{color:#6b6b6b}}@media (prefers-color-scheme:dark){.navigator-hover{background-color:rgba(255,255,255,.1)}}@media (prefers-color-scheme:dark){wx-textarea{color:rgba(255,255,255,.8)}}@media (prefers-color-scheme:dark){wx-trade-service .wx-trade-service-cell-wrapper{background-color:#2f2f2f}wx-trade-service .wx-trade-service-cell-info{color:rgba(255,255,255,.5)}wx-trade-service .wx-trade-service-half-screen-dialog{background-color:#2c2c2c}wx-trade-service .wx-trade-service-half-screen-dialog__title{color:rgba(255,255,255,.8)}wx-trade-service .wx-trade-service-dialog-cell-title{color:rgba(255,255,255,.8)}wx-trade-service .wx-trade-service-dialog-cell-desc{color:rgba(255,255,255,.5)}wx-trade-service .wx-trade-service-half-screen-dialog{background-color:#2c2c2c}wx-trade-service .wx-trade-service-half-screen-dialog__title{color:rgba(255,255,255,.8)}wx-trade-service .wx-trade-service-dialog-cell-title{color:rgba(255,255,255,.8)}wx-trade-service .wx-trade-service-dialog-cell-desc{color:rgba(255,255,255,.5)}wx-trade-service .wx-trade-service-dialog-cell:after{content:\" \";position:absolute;left:0;bottom:0;width:100%;height:1px;border-bottom:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.1);-webkit-transform-origin:0 100%;transform-origin:0 100%;-webkit-transform:scaleY(.5);transform:scaleY(.5)}wx-trade-service .wx-trade-service-icon-btn_close{width:24px;height:24px;background-image:url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMjRweCIgaGVpZ2h0PSIyNHB4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+CiAgICA8IS0tIEdlbmVyYXRvcjogU2tldGNoIDYyICg5MTM5MCkgLSBodHRwczovL3NrZXRjaC5jb20gLS0+CiAgICA8dGl0bGU+55S75p2/PC90aXRsZT4KICAgIDxkZXNjPkNyZWF0ZWQgd2l0aCBTa2V0Y2guPC9kZXNjPgogICAgPGRlZnM+CiAgICAgICAgPHBvbHlnb24gaWQ9InBhdGgtMSIgcG9pbnRzPSI4IDYuOTQzMTgxODIgMS44MDY4MTgxOCAwLjc1IDAuNzUgMS44MDY4MTgxOCA2Ljk0MzE4MTgyIDggMC43NSAxNC4xOTMxODE4IDEuODA2ODE4MTggMTUuMjUgOCA5LjA1NjgxODE4IDE0LjE5MzE4MTggMTUuMjUgMTUuMjUgMTQuMTkzMTgxOCA5LjA1NjgxODE4IDggMTUuMjUgMS44MDY4MTgxOCAxNC4xOTMxODE4IDAuNzUiPjwvcG9seWdvbj4KICAgIDwvZGVmcz4KICAgIDxnIGlkPSLnlLvmnb8iIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIG9wYWNpdHk9IjAuODAwMDAwMDEyIj4KICAgICAgICA8ZyBpZD0iMy5JY29ucy9PdXRsaW5lZC9jbG9zZSI+CiAgICAgICAgICAgIDxnIGlkPSJJY29ucy9UaW50LUNvbG9yL0JsYWNrIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0LjAwMDAwMCwgNC4wMDAwMDApIj4KICAgICAgICAgICAgICAgIDxtYXNrIGlkPSJtYXNrLTIiIGZpbGw9IndoaXRlIj4KICAgICAgICAgICAgICAgICAgICA8dXNlIHhsaW5rOmhyZWY9IiNwYXRoLTEiPjwvdXNlPgogICAgICAgICAgICAgICAgPC9tYXNrPgogICAgICAgICAgICAgICAgPHVzZSBpZD0i5Zu+5qCH6aKc6ImyIiBmaWxsPSIjRkZGRkZGIiB4bGluazpocmVmPSIjcGF0aC0xIj48L3VzZT4KICAgICAgICAgICAgPC9nPgogICAgICAgIDwvZz4KICAgIDwvZz4KPC9zdmc+)}wx-trade-service .wx-trade-service-cell-light-mode{background-color:#fff}wx-trade-service .wx-trade-service-cell-light-mode .wx-trade-service-cell-info{color:rgba(0,0,0,.5)}wx-trade-service .wx-trade-service-cell-gray-mode{background-color:#f7f7f7}wx-trade-service .wx-trade-service-cell-gray-mode .wx-trade-service-cell-info{color:rgba(0,0,0,.5)}wx-trade-service .wx-trade-service-cell-dark-mode{background-color:#2f2f2f}wx-trade-service .wx-trade-service-cell-dark-mode .wx-trade-service-cell-info{color:rgba(255,255,255,.5)}wx-trade-service .wx-trade-service-dialog-dark-mode .wx-trade-service-half-screen-dialog{background-color:#2c2c2c}wx-trade-service .wx-trade-service-dialog-dark-mode .wx-trade-service-half-screen-dialog__title{color:rgba(255,255,255,.8)}wx-trade-service .wx-trade-service-dialog-dark-mode .wx-trade-service-dialog-cell-title{color:rgba(255,255,255,.8)}wx-trade-service .wx-trade-service-dialog-dark-mode .wx-trade-service-dialog-cell-desc{color:rgba(255,255,255,.5)}wx-trade-service .wx-trade-service-dialog-dark-mode .wx-trade-service-dialog-cell:after{content:\" \";position:absolute;left:0;bottom:0;width:100%;height:1px;border-bottom:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.1);-webkit-transform-origin:0 100%;transform-origin:0 100%;-webkit-transform:scaleY(.5);transform:scaleY(.5)}wx-trade-service .wx-trade-service-dialog-dark-mode .wx-trade-service-icon-btn_close{width:24px;height:24px;background-image:url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMjRweCIgaGVpZ2h0PSIyNHB4IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+CiAgICA8IS0tIEdlbmVyYXRvcjogU2tldGNoIDYyICg5MTM5MCkgLSBodHRwczovL3NrZXRjaC5jb20gLS0+CiAgICA8dGl0bGU+55S75p2/PC90aXRsZT4KICAgIDxkZXNjPkNyZWF0ZWQgd2l0aCBTa2V0Y2guPC9kZXNjPgogICAgPGRlZnM+CiAgICAgICAgPHBvbHlnb24gaWQ9InBhdGgtMSIgcG9pbnRzPSI4IDYuOTQzMTgxODIgMS44MDY4MTgxOCAwLjc1IDAuNzUgMS44MDY4MTgxOCA2Ljk0MzE4MTgyIDggMC43NSAxNC4xOTMxODE4IDEuODA2ODE4MTggMTUuMjUgOCA5LjA1NjgxODE4IDE0LjE5MzE4MTggMTUuMjUgMTUuMjUgMTQuMTkzMTgxOCA5LjA1NjgxODE4IDggMTUuMjUgMS44MDY4MTgxOCAxNC4xOTMxODE4IDAuNzUiPjwvcG9seWdvbj4KICAgIDwvZGVmcz4KICAgIDxnIGlkPSLnlLvmnb8iIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIG9wYWNpdHk9IjAuODAwMDAwMDEyIj4KICAgICAgICA8ZyBpZD0iMy5JY29ucy9PdXRsaW5lZC9jbG9zZSI+CiAgICAgICAgICAgIDxnIGlkPSJJY29ucy9UaW50LUNvbG9yL0JsYWNrIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0LjAwMDAwMCwgNC4wMDAwMDApIj4KICAgICAgICAgICAgICAgIDxtYXNrIGlkPSJtYXNrLTIiIGZpbGw9IndoaXRlIj4KICAgICAgICAgICAgICAgICAgICA8dXNlIHhsaW5rOmhyZWY9IiNwYXRoLTEiPjwvdXNlPgogICAgICAgICAgICAgICAgPC9tYXNrPgogICAgICAgICAgICAgICAgPHVzZSBpZD0i5Zu+5qCH6aKc6ImyIiBmaWxsPSIjRkZGRkZGIiB4bGluazpocmVmPSIjcGF0aC0xIj48L3VzZT4KICAgICAgICAgICAgPC9nPgogICAgICAgIDwvZz4KICAgIDwvZz4KPC9zdmc+)}wx-trade-service .wx-trade-service-dialog-default-mode .wx-trade-service-half-screen-dialog{background-color:#fff}wx-trade-service .wx-trade-service-dialog-default-mode .wx-trade-service-half-screen-dialog__title{color:rgba(0,0,0,.9)}wx-trade-service .wx-trade-service-dialog-default-mode .wx-trade-service-dialog-cell-title{color:rgba(0,0,0,.9)}wx-trade-service .wx-trade-service-dialog-default-mode .wx-trade-service-dialog-cell-desc{color:rgba(0,0,0,.5)}wx-trade-service .wx-trade-service-dialog-default-mode .wx-trade-service-dialog-cell:after{content:\" \";position:absolute;left:0;bottom:0;width:100%;height:1px;border-bottom:1px solid rgba(0,0,0,.1);color:rgba(0,0,0,.1);-webkit-transform-origin:0 100%;transform-origin:0 100%;-webkit-transform:scaleY(.5);transform:scaleY(.5)}wx-trade-service .wx-trade-service-dialog-default-mode .wx-trade-service-icon-btn_close{width:24px;height:24px;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='24' height='24' viewBox='0 0 24 24'%3E  %3Cdefs%3E    %3Cpath id='33cf2e7b-22e9-42d7-9c56-a9f4a4e03565-a' d='M8 6.943L1.807.75.75 1.807 6.943 8 .75 14.193l1.057 1.057L8 9.057l6.193 6.193 1.057-1.057L9.057 8l6.193-6.193L14.193.75z'/%3E  %3C/defs%3E  %3Cg fill='none' fill-rule='evenodd' transform='translate(-16 -20)'%3E    %3Cpath fill='%23FFF' d='M0 12C0 5.373 5.367 0 12 0h390c6.628 0 12 5.374 12 12v52H0V12z'/%3E    %3Cuse fill='%23000' fill-opacity='.9' transform='translate(20 24)' xlink:href='%2333cf2e7b-22e9-42d7-9c56-a9f4a4e03565-a'/%3E  %3C/g%3E%3C/svg%3E\")}}@media (prefers-color-scheme:dark){wx-editor .ql-editor.ql-blank::before{color:rgba(255,255,255,.6)}}@media (prefers-color-scheme:dark){.wx-wins-scrollbar>div{background-color:#8f8f8f}}";
 

@@ -107,11 +107,247 @@
 
 小程序的基础库是 JavaScript 编写的，基础库提供组件和 API，处理数据绑定、组件系统、事件系统、通信系统等一系列框架逻辑，可以被注入到渲染层和逻辑层运行。在渲染层可以用各类组件组建界面的元素，在逻辑层可以用各类 API 来处理各种逻辑。PageView 可以是 WebView、React-Native-Like、Flutter 来渲染。
 
-架构设计可以参考: [基于小程序技术栈的微信客户端跨平台实践](https://ppt.geekbang.org/slide/show?cid=42&pid=2338)
-
-
+**基础库架构设计参考:  ** [基于小程序技术栈的微信客户端跨平台实践](https://ppt.geekbang.org/slide/show?cid=42&pid=2338)
 
 ![](/images/img5.png)
 
 
+
+**小程序的基础库主要分为：**
+
+- WAWebview：小程序视图层基础库，提供视图层基础能力
+- WAService：小程序逻辑层基础库，提供逻辑层基础能力
+
+**WAWebview 基础库源码源码概览：**
+
+```js
+var __wxLibrary = {
+  fileName: 'WAWebview.js',
+  envType: 'WebView',
+  contextType: 'others',
+  execStart: Date.now()
+};
+
+var __WAWebviewStartTime__ = Date.now();
+
+var __libVersionInfo__ = {
+  "updateTime": "2020.11.25 23:32:34",
+  "version": "2.13.2",
+  "features": {
+    "pruneWxConfigByPage": true,
+    "injectGameContextPlugin": true,
+    "lazyCodeLoading2": true,
+    "injectAppSeparatedPlugin": true,
+    "nativeTrans": true
+  }
+};
+
+/**
+ * core-js 模块
+ */
+!function(n, o, Ye) {
+  ...
+  }, function(e, t, i) {
+    var n = i(3),
+      o = "__core-js_shared__",
+      r = n[o] || (n[o] = {});
+    e.exports = function(e) {
+      return r[e] || (r[e] = {})
+    }
+  ...
+}(1, 1);
+
+var __wxTest__ = !1,
+var __wxConfig;
+
+var wxRunOnDebug = function(e) {
+  e()
+};
+
+/**
+ * 基础模块
+ */
+var Foundation = function(i) {
+  ...
+}]).default;
+
+var nativeTrans = function(e) {
+  ...
+}(this);
+
+/**
+ * 消息通信模块
+ */
+var WeixinJSBridge = function(e) {
+  ...
+}(this);
+
+/**
+ * 监听 nativeTrans 相关事件
+ */
+!function() {
+  ...
+}();
+
+/**
+ * 解析配置
+ */
+!function(r) {
+  ...
+  __wxConfig = _(__wxConfig), __wxConfig = v(__wxConfig), Foundation.onConfigReady(function() {
+    m()
+  }), n ? __wxConfig.__readyHandler = A : d ? Foundation.onBridgeReady(function() {
+    WeixinJSBridge.on("onWxConfigReady", A)
+  }) : Foundation.onLibraryReady(A)
+}(this);
+
+/**
+ * 异常捕获（error、onunhandledrejection）
+ */
+!function(e) {
+  function t(e) {
+    Foundation.emit("unhandledRejection", e) || console.error("Uncaught (in promise)", e.reason)
+  }
+  "object" == typeof e && "function" == typeof e.addEventListener ? (e.addEventListener("unhandledrejection", function(e) {
+    t({
+      reason: e.reason,
+      promise: e.promise
+    }), e.preventDefault()
+  }), e.addEventListener("error", function(e) {
+    var t;
+    t = e.error, Foundation.emit("error", t) || console.error("Uncaught", t), e.preventDefault()
+  })) : void 0 === e.onunhandledrejection && Object.defineProperty(e, "onunhandledrejection", {
+    value: function(e) {
+      t({
+        reason: (e = e || {}).reason,
+        promise: e.promise
+      })
+    }
+  })
+}(this);
+
+/**
+ * 原生缓冲区
+ */
+var NativeBuffer = function(e) {
+  ...
+}(this);
+var WeixinNativeBuffer = NativeBuffer;
+var NativeBuffer = null;
+
+/**
+ * 日志模块：wxConsole、wxPerfConsole、wxNativeConsole、__webviewConsole__
+ */
+var wxConsole = ["log", "info", "warn", "error", "debug", "time", "timeEnd", "group", "groupEnd"].reduce(function(e, t) {
+  return e[t] = function() {}, e
+}, {});
+
+var wxPerfConsole = ["log", "info", "warn", "error", "time", "timeEnd", "trace", "profile", "profileSync"].reduce(function(e, t) {
+  return e[t] = function() {}, e
+}, {});
+
+var wxNativeConsole = function(i) {
+  ...
+}([function(e, t, i) {
+  ...
+}]).default;
+
+var __webviewConsole__ = function(i) {
+  ...
+}([function(e, t, i) {
+  ...
+}]);
+
+/**
+ * 上报模块
+ */
+var Reporter = function(i) {
+  ...
+}([function(e, L, O) {
+  ...
+}]).default;
+
+var Perf = function(i) {
+  ...
+}([function(e, t, i) {
+  ...
+}]).default;
+
+/**
+ * 视图层 API
+ */
+var __webViewSDK__ = function(i) {
+  ...
+}([function(e, L, O) {
+  ...
+}]).default;
+var wx = __webViewSDK__.wx;
+
+/**
+ * 组件系统
+ */
+var exparser = function(i) {
+  ...
+}([function(e, t, i) {
+  ...
+}]);
+
+/**
+ * 框架粘合层
+ * 
+ * 使用 exparser.registerBehavior 和 exparser.registerElement 方法注册内置组件
+ * 转发 window、wx 对象上到事件转发到 exparser
+ */
+!function(i) {
+  ...
+}([function(e, t) {
+  ...
+}, function(e, t) {}, , function(e, t) {}]);
+
+/**
+ * Virtual DOM 
+ */
+var __virtualDOMDataThread__ = !1,
+var __virtualDOM__ = function(i) {
+  ...
+}([function(e, t, i) {
+  ...
+}]);
+
+/**
+ * __webviewEngine__
+ */
+var __webviewEngine__ = function(i) {
+  ...
+}([function(e, t, i) {
+  ...
+}]);
+
+/**
+ * 注入默认样式到页面
+ */
+!function() {
+  ...
+  function e() {
+     var e = i('...');
+    __wxConfig.isReady ? void 0 !== __wxConfig.theme && i(t, e.nextElementSibling) : __wxConfig.onReady(function() {
+      void 0 !== __wxConfig.theme && i(t, e.nextElementSibling)
+    })
+  }
+  window.document && "complete" === window.document.readyState ? e() : window.onload = e
+}();
+
+var __WAWebviewEndTime__ = Date.now();
+typeof __wxLibrary.onEnd === 'function' && __wxLibrary.onEnd();
+__wxLibrary = undefined;
+```
+
+其中，WAWebview 最主要的几个部分：
+
+- Foundation：基础模块
+- WeixinJSBridge：消息通信模块
+- exparser：组件系统模块
+- `__virtualDOM__`：虚拟 Dom 模块
+- `__webViewSDK__`：WebView SDK 模块
+- Reporter：日志上报模块(异常和性能统计数据)
 
