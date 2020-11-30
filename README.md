@@ -185,14 +185,14 @@ var WeixinJSBridge = function(e) {
 /**
  * 监听 nativeTrans 相关事件
  */
-!function() {
+function() {
   ...
 }();
 
 /**
  * 解析配置
  */
-!function(r) {
+function(r) {
   ...
   __wxConfig = _(__wxConfig), __wxConfig = v(__wxConfig), Foundation.onConfigReady(function() {
     m()
@@ -204,7 +204,7 @@ var WeixinJSBridge = function(e) {
 /**
  * 异常捕获（error、onunhandledrejection）
  */
-!function(e) {
+function(e) {
   function t(e) {
     Foundation.emit("unhandledRejection", e) || console.error("Uncaught (in promise)", e.reason)
   }
@@ -350,4 +350,177 @@ __wxLibrary = undefined;
 - `__virtualDOM__`：虚拟 Dom 模块
 - `__webViewSDK__`：WebView SDK 模块
 - Reporter：日志上报模块(异常和性能统计数据)
+
+
+
+**WAService 基础库源码源码概览：**
+
+```js
+var __wxLibrary = {
+  fileName: 'WAService.js',
+  envType: 'Service',
+  contextType: 'App:Uncertain',
+  execStart: Date.now()
+};
+var __WAServiceStartTime__ = Date.now();
+
+(function(global) {
+  var __exportGlobal__ = {};
+  var __libVersionInfo__ = {
+    "updateTime": "2020.11.25 23:32:34",
+    "version": "2.13.2",
+    "features": {
+      "pruneWxConfigByPage": true,
+      "injectGameContextPlugin": true,
+      "lazyCodeLoading2": true,
+      "injectAppSeparatedPlugin": true,
+      "nativeTrans": true
+    }
+  };
+  var __Function__ = global.Function;
+  var Function = __Function__;
+
+  /**
+   * core-js 模块
+   */
+  !function(r, o, Ke) {
+  }(1, 1);
+
+  var __wxTest__ = !1;
+  wxRunOnDebug = function(A) {
+    A()
+  };
+
+  var __wxConfig;
+  /**
+   * 基础模块
+   */
+  var Foundation = function(n) {
+    ...
+  }([function(e, t, n) {
+    ...
+  }]).default;
+
+  var nativeTrans = function(e) {
+    ...
+  }(this);
+
+  /**
+   * 消息通信模块
+   */
+  var WeixinJSBridge = function(e) {
+    ...
+  }(this);
+
+  /**
+   * 监听 nativeTrans 相关事件
+   */
+  function() {
+    ...
+  }();
+
+  /**
+   * 解析配置
+   */
+  function(i) {
+    ...
+  }(this);
+
+  /**
+   * 异常捕获（error、onunhandledrejection）
+   */
+  !function(A) {
+    ...
+  }(this);
+
+  /**
+   * 原生缓冲区
+   */
+  var NativeBuffer = function(e) {
+    ...
+  }(this);
+  WeixinNativeBuffer = NativeBuffer;
+  NativeBuffer = null;
+
+  var wxConsole = ["log", "info", "warn", "error", "debug", "time", "timeEnd", "group", "groupEnd"].reduce(function(e, t) {
+      return e[t] = function() {}, e
+    }, {});
+
+  var wxPerfConsole = ["log", "info", "warn", "error", "time", "timeEnd", "trace", "profile", "profileSync"].reduce(function(e, t) {
+    return e[t] = function() {}, e
+  }, {});
+
+  var wxNativeConsole = function(n) {
+    ...
+  }([function(e, t, n) {
+    ...
+  }]).default;
+
+  /**
+   * Worker 模块
+   */
+  var WeixinWorker = function(A) {
+    ...
+  }(this);
+
+  /**
+   * JSContext
+   */
+  var JSContext = function(n) {
+    ...
+  }([
+    ...
+  }]).default;
+
+  var __appServiceConsole__ = function(n) {
+    ...
+  }([function(e, N, R) {
+    ...
+  }]).default;
+
+  var Protect = function(n) {
+    ...
+  }([function(e, t, n) {
+    ...
+  }]);
+
+  var Reporter = function(n) {
+    ...
+  }([function(e, N, R) {
+    ...
+  }]).default;
+
+  var __subContextEngine__ = function(n) {
+    ...
+  }([function(e, t, n) {
+    ...
+  }]);
+
+  var __waServiceInit__ = function() {
+    ...
+  }
+
+  function __doWAServiceInit__() {
+    var e;
+    "undefined" != typeof wx && wx.version && (e = wx.version), __waServiceInit__(), e && "undefined" != typeof __exportGlobal__ && __exportGlobal__.wx && (__exportGlobal__.wx.version = e)
+  }
+  __subContextEngine__.isIsolateContext();
+  __subContextEngine__.isIsolateContext() || __doWAServiceInit__();
+  __subContextEngine__.initAppRelatedContexts(__exportGlobal__);
+})(this);
+
+var __WAServiceEndTime__ = Date.now();
+typeof __wxLibrary.onEnd === 'function' && __wxLibrary.onEnd();
+__wxLibrary = undefined;
+```
+
+其中，WAService 最主要的几个部分：
+
+- Foundation：基础模块
+- WeixinJSBridge：消息通信模块
+- WeixinNativeBuffer：原生缓冲区
+- WeixinWorker：Worker 线程
+- JSContext：JS Engine Context
+- Protect：JS 保护的对象
+- `__subContextEngine__`：提供 App、Page、Component、Behavior、getApp、getCurrentPages 等方法
 
