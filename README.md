@@ -51,7 +51,7 @@
 
 ![](/images/img4.png)
 
-5、解开 .wxvpkg 包，里面是小程序基础库源码，主要两个模块
+5、解开 .wxvpkg 包，里面是小程序基础库源码，主要两个模块。利用 [wechat-app-unpack](https://github.com/leo9960/wechat-app-unpack) 解压基础库 .wxvpkg 包
 
 - WAWebview：小程序视图层基础库，提供视图层基础能力
 
