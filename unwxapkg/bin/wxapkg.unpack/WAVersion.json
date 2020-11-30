@@ -1,0 +1,11 @@
+{
+  "updateTime": "2020.11.25 23:32:34",
+  "version": "2.13.2",
+  "features": {
+    "pruneWxConfigByPage": true,
+    "injectGameContextPlugin": true,
+    "lazyCodeLoading2": true,
+    "injectAppSeparatedPlugin": true,
+    "nativeTrans": true
+  }
+}
