@@ -59,7 +59,10 @@
 
   ![](/images/img8.png)
 
-6、这里面除了有微信各个版本的基础库，还有两个非常重要的东西，wcc 和 wcsc；**wcc 将 wxml 转换为 html，wcsc 将 wxss 转换为 css**
+6、openVender()里面除了有微信各个版本的基础库，还有两个非常重要的东西，wcc 和 wcsc；**wcc 将 wxml 转换为 html，wcsc 将 wxss 转换为 css**
+
+- wcc 将 wxml 编译成对应的 js，因为要识别动态数据，然后再转换为 html
+- wcsc 将 css 编译成对应的 js，因为要将 rpx 识别，然后再转换为 css
 
 
 
@@ -344,9 +347,9 @@ __wxLibrary = undefined;
 
 其中，WAWebview 最主要的几个部分：
 
-- Foundation：基础模块
-- WeixinJSBridge：消息通信模块
-- exparser：组件系统模块
+- Foundation：基础模块(发布订阅、通信桥梁 ready 事件)
+- WeixinJSBridge：消息通信模块（js 和 native 通讯） Webview 和 Service都有相同的一套
+- exparser：组件系统模块，实现了一套自定义的组件模型，比如实现了 wx-view
 - `__virtualDOM__`：虚拟 Dom 模块
 - `__webViewSDK__`：WebView SDK 模块
 - Reporter：日志上报模块(异常和性能统计数据)
@@ -517,10 +520,56 @@ __wxLibrary = undefined;
 其中，WAService 最主要的几个部分：
 
 - Foundation：基础模块
-- WeixinJSBridge：消息通信模块
+- WeixinJSBridge：消息通信模块(js 和 native 通讯) Webview 和 Service都有相同的一套
 - WeixinNativeBuffer：原生缓冲区
 - WeixinWorker：Worker 线程
 - JSContext：JS Engine Context
 - Protect：JS 保护的对象
 - `__subContextEngine__`：提供 App、Page、Component、Behavior、getApp、getCurrentPages 等方法
+
+
+
+**wcc：wxml 转换器**
+
+首先，通过 wcc.exe 执行以下 .wxml 文件，得到一个 js，这个就是  wcc.exe 编译 wxml 文件的结果
+
+```
+./wcc -d index.wxml >> index-wxml.js    // 将编译后的结果写入 index-wxml.js
+```
+
+![](/images/img9.png)
+
+
+
+index-wxml.js 中主要的就是一个 $gwx 函数**
+
+```
+var $gwxc
+var $gaic={}
+$gwx=function(path, global){
+  ...
+  return root;
+}
+```
+
+
+
+然后新建一个**html文件：** wxml.html，在其中引入 index-wxml.js，然后在浏览器中打开，控制台执行：
+
+```
+let res = $gwx('index.wxml')
+res()
+```
+
+可以看到：
+
+![](/images/img10.png)
+
+所以很容易得出，wcc 转换 wxml 的过程就是：
+
+1. wcc 编译 wxml 文件得到一个 js 文件
+2. 这个 js 文件主体是一个 $gwx() 函数，这个函数接收一个 wxml 文件路径，返回的也是一个函数，执行这个返回的函数，可以得到一个虚拟 DOM
+3. 然后是 exparser 将虚拟 DOM 解析成真实 DOM 后渲染到页面
+
+
 

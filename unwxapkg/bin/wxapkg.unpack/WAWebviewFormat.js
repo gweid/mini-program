@@ -4182,10 +4182,10 @@ var __wxTest__ = !1,
         return A
       }
     }, o && o.clientDebug && (e.WeixinJSBridge = {
-      on: v,
-      publish: _,
-      invoke: l,
-      subscribe: m,
+      on: v, // 监听原生方法调用
+      publish: _, // 发布消息到对应的逻辑层或者视图层
+      invoke: l, // 调用原生方法
+      subscribe: m, // 监听对应的逻辑层或者视图层发送过来的消息
       get invokeCallbackHandler() {
         return c
       },
