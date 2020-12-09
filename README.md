@@ -656,4 +656,58 @@ wcsc 转换 wxss 的流程就是：
 2. 这个 js 文件主要做的就是
    - rpx 转换
    - 创建一个 style 标签，插入到 head
+**wcsc：wxss 转换器**
+
+
+
+**串联起来首次渲染流程**
+
+1. 微信开发者工具 ---> 调试 ---> 调试微信开发者工具 ---> document.getElementsByTagName('webview')[0].showDevTools(true, null) 打开，可以看到：
+
+   ![](/images/img14.png)
+
+2. 可以看到有一段：
+
+   ```js
+   var decodeName = decodeURI("./pages/index/index.wxml");
+   var generateFunc = $gwx(decodeName);
+   if (generateFunc) {
+       var CE = (typeof __global === 'object') ? (window.CustomEvent || __global.CustomEvent) : window.CustomEvent;
+       document.dispatchEvent(new CE("generateFuncReady", {
+           detail: {
+               generateFunc: generateFunc
+           }
+       })) __global.timing.addPoint('PAGEFRAME_GENERATE_FUNC_READY', Date.now())
+   } else {
+       document.body.innerText = decodeName + " not found"console.error(decodeName + " not found")
+   };
+   ```
+
+   - `var generateFunc = $gwx(decodeName)` 创建了一个生成虚拟 dom 的函数
+
+   - `var CE = window.CustomEvent`  window.CustomEvent 作用：创建自定义事件
+
+   - `document.dispatchEvent` 播报一个自定义事件
+
+   - 然后在 WAWebview.js 中 监听这个自定义事件，并且通过 WeixinJSBridge 通知 js 逻辑层视图已经准备好
+
+     ```
+     c = function() {
+        setTimeout(function() {
+             ! function() {
+               var e = arguments;
+               r(function() {
+                 WeixinJSBridge.publish.apply(WeixinJSBridge, o(e))
+               })
+           }("GenerateFuncReady", {})
+        }, 20)
+     }
+     document.addEventListener("generateFuncReady", c)
+     ```
+
+   - 然后 js 逻辑层将数据给 webview 视图层，就可以进行首次渲染
+
+     ![](/images/img15.png)
+
+     
 
