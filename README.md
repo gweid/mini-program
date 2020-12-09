@@ -531,6 +531,10 @@ __wxLibrary = undefined;
 
 **wcc：wxml 转换器**
 
+整体流程图：
+
+![](/images/img12.png)
+
 首先，通过 wcc.exe 执行以下 .wxml 文件，得到一个 js，这个就是  wcc.exe 编译 wxml 文件的结果
 
 ```
@@ -541,7 +545,7 @@ __wxLibrary = undefined;
 
 
 
-index-wxml.js 中主要的就是一个 $gwx 函数**
+编译结果文件 index-wxml.js 中主要的就是一个 $gwx 函数**
 
 ```
 var $gwxc
@@ -572,4 +576,84 @@ res()
 3. 然后是 exparser 将虚拟 DOM 解析成真实 DOM 后渲染到页面
 
 
+
+**wcsc： wxss 转换器**
+
+![](/images/img13.png)
+
+首先，通过 wcsc.exe 执行以下 .wxss 文件，得到一个 js，这个就是  wcsc.exe 编译 wxss 文件的结果
+
+```js
+./wcsc -js index.wxss >> index-wxss.js
+```
+
+![](/images/img11.png)
+
+
+
+编译结果文件 index-wxss.js :
+
+```js
+// rpx 转换
+var BASE_DEVICE_WIDTH = 750;
+var isIOS=navigator.userAgent.match("iPhone");
+var deviceWidth = window.screen.width || 375;
+var deviceDPR = window.devicePixelRatio || 2;
+var checkDeviceWidth = window.__checkDeviceWidth__ || function() {
+var newDeviceWidth = window.screen.width || 375
+var newDeviceDPR = window.devicePixelRatio || 2
+var newDeviceHeight = window.screen.height || 375
+if (window.screen.orientation && /^landscape/.test(window.screen.orientation.type || '')) newDeviceWidth = newDeviceHeight
+if (newDeviceWidth !== deviceWidth || newDeviceDPR !== deviceDPR) {
+deviceWidth = newDeviceWidth
+deviceDPR = newDeviceDPR
+}
+}
+...
+var transformRPX = window.__transformRpx__ || function(number, newDeviceWidth) {}
+
+...
+// 将 css 插入标签头部
+var setCssToHead = function(file, _xcInvalid, info) {
+   ...
+}
+   
+...
+if ( !style )
+{
+var head = document.head || document.getElementsByTagName('head')[0];
+// 创建 css 标签
+style = document.createElement('style');
+style.type = 'text/css';
+style.setAttribute( "wxss:path", info.path );
+head.appendChild(style);
+window.__rpxRecalculatingFuncs__.push(function(size){
+opt.deviceWidth = size.width;
+rewritor(suffix, opt, style);
+});
+}
+if (style.styleSheet) {
+style.styleSheet.cssText = css;
+} else {
+if ( style.childNodes.length == 0 )
+style.appendChild(document.createTextNode(css));
+else
+style.childNodes[0].nodeValue = css;
+}
+}
+return rewritor;
+}
+
+setCssToHead([".",[1],"userinfo { display: flex; flex-direction: column; align-items: center; }\n.",[1],"userinfo-avatar { width: ",[0,128],"; height: ",[0,128],"; margin: ",[0,20],"; border-radius: 50%; }\n.",[1],"userinfo-nickname { color: #aaa; }\n.",[1],"usermotto { margin-top: 200px; }\n",])( typeof __wxAppSuffixCode__ == "undefined"? undefined : __wxAppSuffixCode__ );
+
+```
+
+
+
+wcsc 转换 wxss 的流程就是：
+
+1. wcsc 编译 wxss 得到一个 js 文件
+2. 这个 js 文件主要做的就是
+   - rpx 转换
+   - 创建一个 style 标签，插入到 head
 
