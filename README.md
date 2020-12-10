@@ -905,6 +905,18 @@ uni-app 是一个典型的编译时+运行时的类 vue 小程序框架，这就
 
 - **改造 vue，移除 vnode**
 
+  根据 uni-app 的运行时原理，可以得知，vue 实例负责数据管理，小程序 page 实例负责视图渲染，页面 dom 由小程序负责生成，小程序实例只接受 data 数据。而 vue 维护的 vnode 无法和小程序的真实 dom 对应，也就是说 vue 的 vnode 在小程序端没用，可以移除。
+
+  所以，对应 uni-app 改造的 vue 在三方面做了优化
+
+  - compiler：取消 optimize 步骤，因为这一步骤是为了标记静态节点，而 uni-app 中的 vue 只负责数据，不需要关注 dom 节点
+
+  - rander： 不生成 vnode
+
+  - patch：不对比 vnode，只比对 data，因为 setData 只能传递数据
+
+    ![](/images/img26.png)
+
 - **减少 setData 调用次数**
 
 - **数据差量更新**
