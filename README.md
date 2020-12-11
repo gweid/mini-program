@@ -855,7 +855,7 @@ wcsc 转换 wxss 的流程就是：
 总结：
 
 - **数据是归 Vue 管：**Vue 数据变更后，通过框架的 `runtime` 运行时来做中间桥接，把数据同步到小程序中。
-- **事件及展示由小程序管：**用户在小程序触发各种事件，比如说滚动，事件点击，先触发小程序事件函数，接着通过框架 `runtime` 运行时时间代理机制，触发 vue 中的函数，将逻辑处理收敛在 vue 中。
+- **事件及渲染由小程序管：**用户在小程序触发各种事件，比如说滚动，事件点击，先触发小程序事件函数，接着通过框架 `runtime` 运行时时间代理机制，触发 vue 中的函数，将逻辑处理收敛在 vue 中。
 - **小程序生命周期纳入到 vue 生命周期**
 
 
@@ -889,21 +889,20 @@ uni-app 是一个典型的编译时+运行时的类 vue 小程序框架，这就
   **wxs 有如下特征：**
 
   - WXS 是被限制过的 JavaScript，可以进行一些简单的逻辑运算
-
-  - WXS 的运行环境和其他 JavaScript 代码是隔离的，WXS 中不能调用其他 JavaScript 文件中定义的函数，也不能调用小程序提供的 API
-
+- WXS 的运行环境和其他 JavaScript 代码是隔离的，WXS 中不能调用其他 JavaScript 文件中定义的函数，也不能调用小程序提供的 API
   - WXS 可以监听 touch 事件，处理滚动、拖动交互
 
-
   **uni-app 对 wxs 的支持：**
-
+  
   ```js
-  // 在里面写 wxs 即可
-  <script module="swipe" lang="wxs"></script>
+    // 在里面写 wxs 即可
+    <script module="swipe" lang="wxs"></script>
   ```
 
 
-- **改造 vue，移除 vnode**
+
+
+- **改造 vue，移除 vnode**(vue瘦身：提升运行性能和加载性能)
 
   根据 uni-app 的运行时原理，可以得知，vue 实例负责数据管理，小程序 page 实例负责视图渲染，页面 dom 由小程序负责生成，小程序实例只接受 data 数据。而 vue 维护的 vnode 无法和小程序的真实 dom 对应，也就是说 vue 的 vnode 在小程序端没用，可以移除。
 
@@ -911,18 +910,106 @@ uni-app 是一个典型的编译时+运行时的类 vue 小程序框架，这就
 
   - compiler：取消 optimize 步骤，因为这一步骤是为了标记静态节点，而 uni-app 中的 vue 只负责数据，不需要关注 dom 节点
 
-  - rander： 不生成 vnode
+  - render： 不生成 vnode
 
   - patch：不对比 vnode，只比对 data，因为 setData 只能传递数据
 
     ![](/images/img26.png)
+    
+    >  改造后的 vue 源码，vue runtime 大小减少了 1/3 左右，同时提升了小程序的运行性能和加载性能。
+    
+    
 
-- **减少 setData 调用次数**
+- **减少 setData 调用次数**(Vue.nextTick)
 
-- **数据差量更新**
+  对于以下代码：
 
-- **组件差量更新**
+  ```js
+  handleChange: () => {
+      this.a = 1;
+      this.b = 2;
+      this.c = 3;
+      ...
+  }
+  ```
 
+  uni-app 运行时会自动合并成 {"a": 1, "b": 2, "c": 3}，只调用一次 setData 传递数据，减少 setData 的调用。
+
+  
+
+- **数据差量更新**(diff data：减少 setData 传递数据量)
+
+  场景：上拉加载，页面初始有 3 条数据，上拉加载后需要追加 3 条。
+
+  ```js
+  page({
+      data: {
+          list: ['item1', 'item2', 'item3']
+      },
+      handleLoad() => {
+          let newList = ['item4', 'item5', 'item6'];
+          this.data.list.push(...newList);
+          this.setData({
+              list: this.data.list
+          });
+      }
+  })
+  ```
+
+  如果像上面那样，setData 会把 item1~item6 六条数据全量传递，而实际只是追加了 item4~item6 三条
+
+  一般这种场景，需要开发者手动进行差量更新：
+
+  ```js
+  page({
+      data: {
+          list: ['item1', 'item2', 'item3']
+      },
+      handleLoad() => {
+          let idx = this.data.list.length;
+          let newList = ['item4', 'item5', 'item6'];
+          let newObj = {};
+          newList.forEach(item => {
+             newObj[`list[${idx++}]`] = item; 
+          });
+          this.setData(newObj);
+      }
+  })
+  
+  // 实际上传递的
+  this.setData({
+      list[3]: 'item3',
+      list[4]: 'item4'
+  })
+  ```
+
+  这样差量更新更多的是依赖于开发者的意识，并不能很好地控制叫程序上拉加载的性能。因此 uni-app 借鉴 `westore-json-diff` ，在 setData 之前，**先对比数据，找出需要差量更新的数据**，在通过 setData 传递；这样就可以放心使用：
+
+  ```js
+  export default {
+      data() {
+          return {
+              list: ['item1', 'item2', 'item3']
+          }
+      },
+      methods: {
+          handleLoad() => {
+              let newList = ['item4', 'item5', 'item6'];
+              this.data.list.push(...newList);
+          }
+      }
+  }
+  ```
+
+  
+
+- **组件差量更新**(自定义组件：减少 data diff 范围)
+
+  
+
+  
 
 #### 运行时
+
+
 
