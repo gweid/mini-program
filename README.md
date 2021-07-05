@@ -1,12 +1,22 @@
 #  小程序
 
-本文是深入学习小程序的一些个人记录：包括小程序架构原理、各大小程序框架(预编译型、半编译半运行时框架、运行时框架)的一些对比理解等
+本文是深入学习小程序的一些个人记录：包括小程序架构原理、各大小程序框架(预编译型、半编译半运行时框架、运行时框架)的一些理解、CI 持续集成等。
 
 
 
-## 小程序开发最基本的三大块
+可参考：
 
-#### 带着问题来看一下小程序开发最基本的三大块：
+[微信小程序技术原理分析](https://zhaomenghuan.js.org/blog/wechat-miniprogram-principle-analysis.html)
+
+[深入浅出主流的几款小程序跨端框架原理](https://juejin.cn/post/6881597846307635214)
+
+
+
+## 小程序基础
+
+
+
+#### 带着问题来看一下小程序的三大块：
 
 - js 逻辑（运行在 JsCore 或 v8 里）
   - 问题：为什么需要一个单独的线程进行 js 的运行
@@ -18,78 +28,69 @@
   - 问题：...
 - wxss 样式文件
   - 问题： 同样，微信小程序是怎么识别 wxss 的
-  - 微信小程序的 rpx 单位是怎么实现的
+  - 问题：微信小程序的 rpx 单位是怎么实现的
   - 问题：...
 
 
 
-## 小程序一些需要知道的东西
-
-#### 基础架构图：
+#### 基础架构图
 
 ![小程序基础架构图](/images/img1.jpg)
 
-
-
-#### 小程序从架构设计层面做的性能优化
-
-- 逻辑层、视图层分离，避免JS运算阻塞视图渲染
-- 单独定义组件标签（wxml），减少DOM复杂度
-- 精简样式（wxss），提升渲染性能
-- 复杂组件原生化（video/map等），解决web组件的功能/体验缺失
+- 视图层主要负责页面的渲染
+- 逻辑层负责js的执行
 
 
 
-#### 小程序基本的架构，双线程模型：
+#### 双线程模型
 
-##### webView 视图线程： 处理 wxml 和 wxss，然后显示页面
 
-1、在微信小程序中，视图层其实就是一个 iframe，可以通过**微信开发者工具-->调试-->调试微信开发者工具**打开
+
+##### webView 视图线程
+
+处理 wxml 和 wxss，然后显示页面。
+
+1、通过**微信开发者工具-->调试-->调试微信开发者工具**打开，检查 Element 栏
+
+可以发现，视图层就是一层 webview ，webview 标签中通过 src 引入了页面路径，route 定义路由
+
+而 webview 里面其实就是一个 iframe。
 
 ![](/images/img2.png)
 
 
 
-2、每个小程序页面都是用不同的 WebView 去渲染，这样可以提供更好的交互体验，更贴近原生体验，也避免了单个 WebView 的任务过于繁重。而这个 iframe 里面封装的是一些 html 代码，通过在调试开发者工具中执行 document.getElementsByTagName('webview')[0].showDevTools(true, null) 可以看到如下代码：
+接下来，点击跳转：
 
-![](/images/img3.png)
+![](./images/img29.png)
 
-  
+发现，里面多了一个 webview，而多出来的那个 webview 就是跳转的那个页面。而这个新的 webview 通过 z-index 实现了对第一个页面的覆盖。这就是小程序的页面栈。也是因为新打开一个页面，是通过添加一个 webview 的原因，所以小程序才有打开页面个数限制。
 
-3、wx-view 这些就类似 web component 组件之类的东西，这些就是真正运行在 iframe 中的东西
+也是因为这个原因，可以说小程序也是 spa 单页面的。
 
-
-
- 4、 而解析 wx-view 这些东西依赖于微信的基础库，可以直接在开发者工具里通过 openVendor() 打开基础库文件夹；（每一个 .wxvpkg 文件对应一个基础库，微信小程序是运行在基础库之上的，才可以实现小程序代码的各种解析和各种功能）
-
-![](/images/img4.png)
+这么做的意义：每个小程序页面 page 都是用不同的 WebView 去渲染，这样可以提供更好的交互体验，更贴近原生体验，也避免了单个 WebView 的任务过于繁重。
 
 
 
-5、解开 .wxvpkg 包，里面是小程序基础库源码，主要两个模块。利用 [wechat-app-unpack](https://github.com/leo9960/wechat-app-unpack) 解压基础库 .wxvpkg 包
+2、 iframe 里面封装的是一些 html 代码，通过在调试开发者工具中执行 document.getElementsByTagName('webview')[0].showDevTools(true, null)就可以打开小程序渲染层：
 
-- WAWebview：小程序视图层基础库，提供视图层基础能力
+ ![](/images/img3.png)
 
-- WAService：小程序逻辑层基础库，提供逻辑层基础能力
-
-  ![](/images/img8.png)
-
-6、openVender()里面除了有微信各个版本的基础库，还有两个非常重要的东西，wcc 和 wcsc；**wcc 将 wxml 转换为 html，wcsc 将 wxss 转换为 css**
-
-- wcc 将 wxml 编译成对应的 js，因为要识别动态数据，然后再转换为 html
-- wcsc 将 css 编译成对应的 js，因为要将 rpx 识别，然后再转换为 css
+- 这里面有 wx-view 这些东西，类似 web component 组件，是小程序自定义的组件。这些就是真正运行在 iframe 中的东西。而解析 wx-view 这些东西依赖于微信的基础库，关于基础库的内容下一节再详细描述
 
 
 
-##### jscore 逻辑线程：js 执行引擎
+##### jscore 逻辑线程
 
 1、 在开发者工具中输入 document 就可以看到逻辑层代码
 
-![](/images/img7.png)
+ <img src="/images/img7.png" style="zoom:80%;" />
+
+可以发现，这里面加载了 pages/index/index.js 和 pages/logs/logs.js 等等，也就是说，把所有 js 逻辑都放到了一个逻辑线程里面。
 
 
 
-#### jscore 逻辑层和 webview 视图层的通讯： 事件驱动的通讯方式
+#### jscore 逻辑层和 webview 视图层的通讯
 
 逻辑层和视图层之间的通讯方式并非跟 vue/react 一样直接通过两者之间传递数据和事件，而是由 native 作为中间媒介进行转发，这个过程就是一个**事件驱动模式**
 
@@ -99,13 +100,16 @@
 
 
 
-#### 双线程交互的生命周期：
+#### 小程序从架构设计层面做的性能优化
 
-![](/images/img6.png)
+- 逻辑层、视图层分离，避免 JS 运算阻塞视图渲染
+- 单独定义组件标签（wxml），减少 DOM 复杂度
+- 精简样式（wxss），提升渲染性能
+- 复杂组件原生化（video/map 等），解决 web 组件的功能/体验缺失
 
 
 
-#### 双线程模型的相对于浏览器的一些优缺点：
+#### 双线程模型的相对于浏览器的一些优缺点
 
 - 更加安全
 
@@ -121,7 +125,13 @@
 
   同时因为视图和逻辑是两个线程，视图线程没法运行 js ，逻辑线程没法直接访问到视图层的 dom，那么对于需要频繁通信的场景，性能消耗就很严重；例如拖拽，就需要频繁地进行线程通信。
 
+
+
 ## 小程序基础库
+
+小程序是运行在基础库之上的。
+
+
 
 #### 基础库整体架构
 
@@ -133,10 +143,38 @@
 
 
 
+#### 获取基础库
+
+可以直接在开发者工具里的 console 控制台通过 openVendor() 打开基础库文件夹；（每一个 .wxvpkg 文件对应一个基础库，微信小程序是运行在基础库之上的，才可以实现小程序代码的各种解析和各种功能）
+
+> openVendor() 打开可能报错，切换一下基础库再试一下
+
+ <img src="/images/img4.png" style="zoom: 80%;" />
+
+openVender() 打开的文件夹里面有三样东西非常重要：
+
+- xxx.wxvpkg：这种对应的就是各种版本的微信小程序基础库
+- wcc：用于将 wxml 编译成对应的 js，因为要识别动态数据，然后再转换为 html
+- wcsc 将 css 编译成对应的 js，因为要将 rpx 识别，然后再转换为 css
+
+
+
+解开 .wxvpkg 包，里面是小程序基础库源码，主要两个模块。利用 [wechat-app-unpack](https://github.com/leo9960/wechat-app-unpack) 解压基础库 .wxvpkg 包
+
+- WAWebview：小程序视图层基础库，提供视图层基础能力
+
+- WAService：小程序逻辑层基础库，提供逻辑层基础能力
+
+  ![](/images/img8.png)
+
+
+
 #### 小程序的基础库主要分为：
 
 - WAWebview：小程序视图层基础库，提供视图层基础能力
 - WAService：小程序逻辑层基础库，提供逻辑层基础能力
+
+
 
 #### WAWebview 基础库源码源码概览：
 
@@ -366,7 +404,7 @@ __wxLibrary = undefined;
 
 - Foundation：基础模块(发布订阅、通信桥梁 ready 事件)
 - WeixinJSBridge：消息通信模块（js 和 native 通讯） Webview 和 Service都有相同的一套
-- exparser：组件系统模块，实现了一套自定义的组件模型，比如实现了 wx-view
+- exparser：组件系统模块，实现了一套自定义的组件模型，比如实现了 wx-view、wx-picker-view、wx-ad 等组件
 - `__virtualDOM__`：虚拟 Dom 模块
 - `__webViewSDK__`：WebView SDK 模块
 - Reporter：日志上报模块(异常和性能统计数据)
@@ -546,11 +584,37 @@ __wxLibrary = undefined;
 
 
 
+#### WeixinJSBridge 模块
+
+|         方法名          |            作用             |
+| :---------------------: | :-------------------------: |
+|         invoke          |     JS 调用 Native API      |
+|  invokeCallBackHandler  | Native 传递 invoke 方法回调 |
+|           on            |     JS 监听 Native 消息     |
+|         publish         |       视图层发布消息        |
+|        subscribe        |      订阅逻辑层的消息       |
+|    subscribeHandler     | 订阅层和逻辑层消息订阅转发  |
+| setCustomPublistHandler |       自定义消息转发        |
+
+
+
+## 小程序编译
+
+在开发者工具里的 console 控制台通过 openVendor() 打开的文件夹，除了基础库的文件，还有两个很重要的文件 wcc.exe 和 wcsc.exe，这两个文件承担起了小程序的编译。
+
+
+
 #### wcc：wxml 转换器
 
 整体流程图：
 
-![](/images/img12.png)
+ ![](/images/img12.png)
+
+为什么需要将 wxml 转换为 js 呢？
+
+因为  wxml 中会有动态绑定的值，例如： {{ name }}，所以需要转换成 js 文件，再转换成虚拟 DOM。
+
+
 
 首先，通过 wcc.exe 执行以下 .wxml 文件，得到一个 js，这个就是  wcc.exe 编译 wxml 文件的结果
 
@@ -558,11 +622,11 @@ __wxLibrary = undefined;
 ./wcc -d index.wxml >> index-wxml.js    // 将编译后的结果写入 index-wxml.js
 ```
 
-![](/images/img9.png)
+ ![](/images/img9.png)
 
 
 
-编译结果文件 index-wxml.js 中主要的就是一个 $gwx 函数**
+编译结果文件 index-wxml.js 中主要的就是一个 $gwx 函数
 
 ```
 var $gwxc
@@ -584,9 +648,13 @@ res()
 
 可以看到：
 
-![](/images/img10.png)
+ ![](/images/img10.png)
 
-所以很容易得出，wcc 转换 wxml 的过程就是：
+这就是典型的虚拟 DOM 格式。
+
+
+
+wcc 转换 wxml 的过程就是：
 
 1. wcc 编译 wxml 文件得到一个 js 文件
 2. 这个 js 文件主体是一个 $gwx() 函数，这个函数接收一个 wxml 文件路径，返回的也是一个函数，执行这个返回的函数，可以得到一个虚拟 DOM
@@ -596,7 +664,7 @@ res()
 
 #### wcsc： wxss 转换器
 
-![](/images/img13.png)
+ ![](/images/img13.png)
 
 首先，通过 wcsc.exe 执行以下 .wxss 文件，得到一个 js，这个就是  wcsc.exe 编译 wxss 文件的结果
 
@@ -604,7 +672,7 @@ res()
 ./wcsc -js index.wxss >> index-wxss.js
 ```
 
-![](/images/img11.png)
+ ![](/images/img11.png)
 
 
 
@@ -673,11 +741,14 @@ wcsc 转换 wxss 的流程就是：
 2. 这个 js 文件主要做的就是
    - rpx 转换
    - 创建一个 style 标签，插入到 head
-**wcsc：wxss 转换器**
 
 
 
-#### 串联起来首次渲染流程
+## 小程序渲染流程
+
+
+
+#### 初始化流程
 
 1. 微信开发者工具 ---> 调试 ---> 调试微信开发者工具 ---> document.getElementsByTagName('webview')[0].showDevTools(true, null) 打开，可以看到：
 
@@ -702,7 +773,7 @@ wcsc 转换 wxss 的流程就是：
 
    - `var generateFunc = $gwx(decodeName)` 创建了一个生成虚拟 dom 的函数
 
-   - `var CE = window.CustomEvent`  window.CustomEvent 作用：创建自定义事件
+   - `var CE = window.CustomEvent`  window.CustomEvent 作用：创建自定义事件，js 中自定义事件的方法
 
    - `document.dispatchEvent` 播报一个自定义事件
 
@@ -722,16 +793,30 @@ wcsc 转换 wxss 的流程就是：
      document.addEventListener("generateFuncReady", c)
      ```
 
-   - 然后 js 逻辑层将数据给 webview 视图层，就可以进行首次渲染
+   - 逻辑层处理逻辑，也就是我们平常写的小程序 js 文件里的东西，然后通过 WeixinJsBridge 通知并返回数据给视图层。
 
-     ![](/images/img15.png)
+   - 视图层接收到数据，将数据传入生成虚拟 dom 的函数 generateFunc 内, 这就实现了动态数据，然后通过基础库的 exparser 转换成真实 DOM（小程序也有相应的 diff 算法），最后渲染页面。
+   
+   - 初始化完成后，就会走对应的其他生命周期，或者用户触发事件，数据都会在逻辑层处理完成后通过 WeixinJsBridge 通知到视图层，视图层再次调用生成虚拟 dom 的函数，更新页面
+   
+      <img src="/images/img6.png" style="zoom: 67%;" />
+
+
+
+#### 整体流程
+
+补充一张整体流程图
+
+![](./images/img27.png)
 
 
 
 
 ## 小程序框架
 
-#### 小程序框架分类：
+
+
+#### 小程序框架分类
 
 一般来讲，可以从两个维度对目前的小程序框架进行分类：
 
@@ -740,6 +825,8 @@ wcsc 转换 wxss 的流程就是：
 2. 从实现原理来分，一般有编译时、半编译半运行时、运行时 这几种
    -  编译时的框架，主要的工作量在编译阶段。他们框架约定了一套自己的 `DSL` ，在编译打包的过程中，利用 babel 工具通过 AST 进行转译，生成符合小程序规则的代码；这种需要在规定的范围内开发，比如需要遵循规定的框架语法，开发限制过多，不够灵活。但其好处是大部分工作在编译的时候做好，性能相对高。
    - 运行时的框架真正的在小程序的逻辑层中运行起来 React 或者是 Vue 的运行时，然后通过适配层，实现自定义渲染器
+
+
 
 #### 预编译型框架
 
@@ -1009,9 +1096,16 @@ uni-app 是一个典型的编译时+运行时的类 vue 小程序框架，这就
 
   而 uni-app 的自定义组件方式，把每一条微博抽成一个组件，那么就会在当前组件内进行 data diff。
 
-  
+
+
 
 #### 运行时
 
 
+
+## CI 持续集成
+
+源码托管可以在 gitlab 等代码仓库，但是小程序的代码是部署到微信的服务器，目前唯一可用的部署工具是官方提供的 [miniprogram-ci](https://developers.weixin.qq.com/miniprogram/dev/devtools/ci.html)。
+
+[TODO]完善文档
 

@@ -1,0 +1,19 @@
+{
+  "desc": "此文件由 task/dev.js 生成，请勿手动更改此文件",
+  "modules": {
+    "compiler": {
+      "name": "compiler",
+      "localModRequirePath": "../../common/compiler",
+      "useWxvPkgModule": false,
+      "version": "1.3.3",
+      "updateRemote": false
+    },
+    "fileutils": {
+      "name": "fileutils",
+      "localModRequirePath": "../../common/fileutils",
+      "useWxvPkgModule": false,
+      "version": "1.3.4",
+      "updateRemote": false
+    }
+  }
+}
