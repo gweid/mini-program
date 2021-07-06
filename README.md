@@ -123,7 +123,9 @@
 
 - 缺点
 
-  同时因为视图和逻辑是两个线程，视图线程没法运行 js ，逻辑线程没法直接访问到视图层的 dom，那么对于需要频繁通信的场景，性能消耗就很严重；例如拖拽，就需要频繁地进行线程通信。
+  1、同时因为视图和逻辑是两个线程，视图线程没法运行 js ，逻辑线程没法直接访问到视图层的 dom，那么对于需要频繁通信的场景，性能消耗就很严重；例如拖拽，就需要频繁地进行线程通信。但是后面小程序又推出了 wxs（允许在渲染层写 js 代码）
+  
+  2、JS 沙箱，只提供有限的方法。
 
 
 
@@ -169,14 +171,14 @@ openVender() 打开的文件夹里面有三样东西非常重要：
 
 
 
-#### 小程序的基础库主要分为：
+#### 小程序的基础库主要分为
 
 - WAWebview：小程序视图层基础库，提供视图层基础能力
 - WAService：小程序逻辑层基础库，提供逻辑层基础能力
 
 
 
-#### WAWebview 基础库源码源码概览：
+#### WAWebview 基础库源码源码
 
 ```js
 var __wxLibrary = {
@@ -405,13 +407,13 @@ __wxLibrary = undefined;
 - Foundation：基础模块(发布订阅、通信桥梁 ready 事件)
 - WeixinJSBridge：消息通信模块（js 和 native 通讯） Webview 和 Service都有相同的一套
 - exparser：组件系统模块，实现了一套自定义的组件模型，比如实现了 wx-view、wx-picker-view、wx-ad 等组件
-- `__virtualDOM__`：虚拟 Dom 模块
+- `__virtualDOM__`：将虚拟 Dom 转换为真实 DOM；这里特别的地方在于它生成的并不是原生 DOM，而是各种模拟了 DOM 接口的 wx- element 对象
 - `__webViewSDK__`：WebView SDK 模块
 - Reporter：日志上报模块(异常和性能统计数据)
 
 
 
-#### WAService 基础库源码源码概览：
+#### WAService 基础库源码源码
 
 ```js
 var __wxLibrary = {
@@ -584,6 +586,20 @@ __wxLibrary = undefined;
 
 
 
+#### Foundation 模块
+
+基础模块提供环境变量 env、发布订阅 EventEmitter、配置/基础库/通信桥 Ready 事件。
+
+
+
+#### Exparser 模块
+
+小程序的视图是在 WebView 里渲染的，为解决管控与安全，小程序里面不能使用 Web 组件和动态执行 JavaScript。Exparser 是微信小程序的组件组织框架，内置在小程序基础库中，为小程序的各种组件提供基础的支持。小程序内的所有组件，包括内置组件和自定义组件，都由 Exparser 组织管理。Exparser 的组件模型与 WebComponents 标准中的 ShadowDOM 高度相似。**Exparser 会维护整个页面的节点树相关信息，包括节点的属性、事件绑定等**，相当于一个简化版的 Shadow DOM 实现。
+
+小程序中，所有节点树相关的操作都依赖于 Exparser，包括 WXML 到页面最终节点树的构建、createSelectorQuery 调用和自定义组件特性等。
+
+
+
 #### WeixinJSBridge 模块
 
 |         方法名          |            作用             |
@@ -750,6 +766,8 @@ wcsc 转换 wxss 的流程就是：
 
 #### 初始化流程
 
+**1、渲染层初始化：**
+
 1. 微信开发者工具 ---> 调试 ---> 调试微信开发者工具 ---> document.getElementsByTagName('webview')[0].showDevTools(true, null) 打开，可以看到：
 
    ![](/images/img14.png)
@@ -772,34 +790,52 @@ wcsc 转换 wxss 的流程就是：
    ```
 
    - `var generateFunc = $gwx(decodeName)` 创建了一个生成虚拟 dom 的函数
-
    - `var CE = window.CustomEvent`  window.CustomEvent 作用：创建自定义事件，js 中自定义事件的方法
-
    - `document.dispatchEvent` 播报一个自定义事件
 
-   - 然后在 WAWebview.js 中 监听这个自定义事件，并且通过 WeixinJSBridge 通知 js 逻辑层视图已经准备好
+3. 然后在 WAWebview.js 中 监听这个自定义事件，并且通过 WeixinJSBridge.publish 通知 js 逻辑层当前视图已经准备好
 
-     ```
-     c = function() {
-        setTimeout(function() {
-             ! function() {
-               var e = arguments;
-               r(function() {
-                 WeixinJSBridge.publish.apply(WeixinJSBridge, o(e))
-               })
-           }("GenerateFuncReady", {})
-        }, 20)
-     }
-     document.addEventListener("generateFuncReady", c)
-     ```
+   ```js
+   c = function() {
+      setTimeout(function() {
+           ! function() {
+             var e = arguments;
+             r(function() {
+               WeixinJSBridge.publish.apply(WeixinJSBridge, o(e))
+             })
+         }("GenerateFuncReady", {})
+      }, 20)
+   }
+   document.addEventListener("generateFuncReady", c)
+   ```
 
-   - 逻辑层处理逻辑，也就是我们平常写的小程序 js 文件里的东西，然后通过 WeixinJsBridge 通知并返回数据给视图层。
 
-   - 视图层接收到数据，将数据传入生成虚拟 dom 的函数 generateFunc 内, 这就实现了动态数据，然后通过基础库的 exparser 转换成真实 DOM（小程序也有相应的 diff 算法），最后渲染页面。
-   
-   - 初始化完成后，就会走对应的其他生命周期，或者用户触发事件，数据都会在逻辑层处理完成后通过 WeixinJsBridge 通知到视图层，视图层再次调用生成虚拟 dom 的函数，更新页面
-   
-      <img src="/images/img6.png" style="zoom: 67%;" />
+
+**2、逻辑层初始化**
+
+> 渲染层与逻辑层初始化是同时进行的，这就是双线程的好处之一
+
+1. \_\_subContextEngine\_\_ 初始化 App、Page 实例等
+
+2. 加载所有页面的 js
+
+    <img src="./images/img30.png" style="zoom: 50%;" />
+
+
+
+逻辑层初始化完成之后，并且收到渲染层发出的视图准备好的通知，执行下面步骤：
+
+1. 逻辑层进入到对应页面的生命周期，执行生命周期函数处理逻辑，然后 setData，并通过 WeixinJsBridge 通知并返回数据给视图层。
+
+2. 视图层接收到数据，将数据传入生成虚拟 dom 的函数 generateFunc 内, 这就实现了动态数据，然后通过基础库的 `__virtualDOM__` 将虚拟 DOM 转换为真实 DOM（小程序也有相应的 diff 算法），然后衔接 exparser 组件系统，最后渲染页面。
+
+3. 初始化完成后，就会走对应的其他生命周期，或者用户在渲染线程触发事件，那么会1将时间名称以及页面 id 发送给 js 逻辑线程，那么逻辑线程根据页面 id 及时间名称找到对应事件，处理数据，处理完成后通过 WeixinJsBridge 通知视图层，视图层再次调用生成虚拟 dom 的函数，更新页面
+
+
+
+下面是一幅生命周期图：
+
+ <img src="/images/img6.png" style="zoom: 67%;" />
 
 
 
