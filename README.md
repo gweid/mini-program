@@ -850,6 +850,13 @@ wcsc 转换 wxss 的流程就是：
 
 ## 小程序框架
 
+原生小程序开发存在的问题：
+
+- 原生使用的是 WXML、WXSS 这类语法，需要一定的学习成本
+- 对 npm 包支持不友好，那么就意味着不可使用 less、ts 等
+- 没有工程化，难以做到自定义代码压缩、tree shaking 等
+- 现在小程序生态过于繁杂，有微信、阿里、头条等多个平台，每个平台语法还不太一致
+
 
 
 #### 小程序框架分类
@@ -875,7 +882,7 @@ wcsc 转换 wxss 的流程就是：
 
 这个就是单纯的编译时框架，它有自己的一套`DSL`，在编译打包过程，将 wepy 编译成小程序可执行的代码。
 
-![](/images/img16.png)
+ ![](/images/img16.png)
 
 具体就是：
 
@@ -893,17 +900,21 @@ wcsc 转换 wxss 的流程就是：
 
 目前主流的编译时+运行时框架是 mpvue、uni-app 还有 megalo，这些都是类 vue 框架，其实小程序的编译时+运行时框架主要以类 vue 为主，而这些类 vue 框架的原理都相似
 
+
+
 ##### 类 vue 小程序框架
 
-类 vue 的跨端框架核心原理都差不多，都是把 Vue 框架拿过来强行的改了一波，借助了 vue 的能力。比如说，vue 的编译打包流程（也就是vue-loader的能力）, vue 的响应式双向绑定、虚拟dom、diff 算法。上面这些东西跨端框架都没有修改，直接拿来用的。而修改的东西是把原本 vue 框架中原生 javascript 操作 DOM 的方法，替换成小程序平台的 setState。然后还有各家平台的内部做的优化
+类 vue 的跨端框架核心原理都差不多，都是把 Vue 框架拿过来强行的改了一波，借助了 vue 的能力。比如说，vue 的编译打包流程（也就是 vue-loader 的能力）, vue 的响应式双向绑定、虚拟 dom、diff 算法。上面这些东西跨端框架都没有修改，直接拿来用的。而修改的东西是把原本 vue 框架中原生 javascript 操作 DOM 的方法，替换成小程序平台的 setState。然后还有各家平台的内部做的优化。
+
+
 
 ##### vue ---> 小程序
 
-从 vue 文件转换到小程序，这些类 vue 框架主要就是讲 vue 文件的三大块 `template`、`script`、`style` 拆出来，分别编译，转换成小程序的 `wxml`、`wxss`、`js`、`json`
+从 vue 文件转换到小程序（Vue 文件主要是单文件，三段式结构），这些类 vue 框架主要就是将 vue 文件的三大块 `template`、`script`、`style` 拆出来，分别编译，转换成小程序的 `wxml`、`wxss`、`js`、`json`
 
-![](/images/img17.png)
+ ![](/images/img17.png)
 
-![](/images/img18.png)
+<img src="/images/img18.png" style="zoom: 50%;" />
 
 
 
@@ -913,11 +924,11 @@ wcsc 转换 wxss 的流程就是：
 
    vue 使用的 template 和小程序的 template 基本上相似，但也有不同，不同的地方就需要转换
 
-  ![](/images/img19.png)
+   ![](/images/img19.png)
 
-  而模板的转化主要使用了 `ast` 来解析转化模板，实际上就是两侧对齐语     法的过程，把语法不一致的地方改成一样的，是一个 case by case 的过程，只要匹配到不同情况下语法即可:
+  而模板的转化主要使用了 `ast` 来解析转化模板，实际上就是两侧对齐语法的过程，把语法不一致的地方改成一样的，是一个 case by case 的过程，只要匹配到不同情况下语法即可:
 
-  ![](/images/img20.png)
+  <img src="/images/img20.png" style="zoom: 67%;" />
 
 
 
@@ -933,9 +944,9 @@ wcsc 转换 wxss 的流程就是：
   })
   ```
 
-  在引入 vue.js 后，上面代码完全可以在小程序里面执行，因为 vue 代码本身大部分就是 js，小程序的渲染层里面是完全可以直接运行起来 Vue 的运行时；但是小程序有一个主要的问题，就是：小程序平台还规定，要在小程序页面中调用 `Page()` 方法生成一个 `page` 实例， `Page()` 方法是小程序官方提供的 API。
+  在引入 vue.js 后，上面代码完全可以在小程序里面执行，因为 vue 代码本身大部分就是 js，小程序的渲染层里面是完全可以直接运行起来 Vue 运行时的；但是小程序有一个主要的问题，就是：小程序平台还规定，要在小程序页面中调用 `Page()` 方法生成一个 `page` 实例， `Page()` 方法是小程序官方提供的 API。
 
-  在一个人小程序页面中，必须要有一个 `Page()` 方法。微信小程序会在进入一个页面时，扫描该页面中的 `.js` 文件，如果没有调用 `Page()` 这个方法，页面会报错。
+  在一个小程序页面中，必须要有一个 `Page()` 方法。微信小程序会在进入一个页面时，扫描该页面中的 `.js` 文件，如果没有调用 `Page()` 这个方法，页面会报错。
 
   而这些类 vue 框架的普遍做法是将 vue 源码拷贝一份，然后拓展 vue 框架，修改 vue 的初始化方法，在其中调用 `Page()`
 
@@ -948,7 +959,7 @@ wcsc 转换 wxss 的流程就是：
   new Vue()
   ```
 
-  这样子，在 new Vue() 时就会调用 Pag()，生成一个小程序的 Page() 实例；因此，在一个小程序页面，就存在一个小程序 Page 实例和 Vue 实例。然后就是两个实例之间进行融合、数据管理、通信等
+  这样子，在 new Vue() 时就会调用 Page()，生成一个小程序的 Page() 实例；因此，在一个小程序页面，就存在一个小程序 Page 实例和 Vue 实例。然后就是两个实例之间进行融合、数据管理、通信等。
 
 
 
@@ -956,15 +967,45 @@ wcsc 转换 wxss 的流程就是：
 
 核心流程图：
 
-![](/images/img21.png)
+<img src="/images/img21.png" style="zoom:80%;" />
 
-由图可以看出，这种类 vue 小程序框架，整体上和 vue 类似，只是将 vue copy 了一份，然后改造。
+由图可以看出，这种类 vue 小程序框架，整体上和 vue 类似，只是将 vue 运行时 copy 了一份，然后改造。
 
 在小程序中，隔离了逻辑线程和视图线程，因此，并不能直接操作 dom，所以就在 patch 之后，不再去直接操作 dom，而是改由小程序提供的 setData 去更新视图。
 
+
+
+使用 vue 中 diff 的好处：
+
+```vue
+<template>
+  <div>{{ name }}</div>
+</template>
+
+<script>
+export default {
+  data() {
+    returrn {
+      name: 'jack',
+        age: 20
+    }
+  },
+  methods: {
+    setAge() {
+      this.age = 30
+    }
+  }
+}
+</script>
+```
+
+在模板编译的时候，就知道需要使用的是 name 这个变量，而没有使用到 age。那么在后面就算触发了 setAge 事件，也不会进行小程序的 setData，这就提高了 setData 的性能。
+
+
+
 **Vue 实例和小程序 Page 实例的分工协同: 通过 runtime 运行时串联**
 
-![](/images/img22.png)
+ ![](/images/img22.png)
 
 首先，在页面初始化的时候，先实例化一个 Vue；然后在 Vue.init 中调用小程序的 Page() 生成小程序 page 实例；后在 Vue 的 moutend 中把数据同步到小程序的 page 实例上。所以，实际上会同时存在 vue 实例和小程序的 page 实例，并且在 Vue 的 moutend 中同步之后，两个实例的初始数据就会一致。
 
@@ -978,14 +1019,534 @@ wcsc 转换 wxss 的流程就是：
 总结：
 
 - **数据是归 Vue 管：**Vue 数据变更后，通过框架的 `runtime` 运行时来做中间桥接，把数据同步到小程序中。
-- **事件及渲染由小程序管：**用户在小程序触发各种事件，比如说滚动，事件点击，先触发小程序事件函数，接着通过框架 `runtime` 运行时时间代理机制，触发 vue 中的函数，将逻辑处理收敛在 vue 中。
+- **事件及渲染由小程序管：**用户在小程序触发各种事件，比如说滚动，事件点击，先触发小程序事件函数，接着通过框架 `runtime` 运行时代理机制，触发 vue 中的函数，将逻辑处理收敛在 vue 中。
 - **小程序生命周期纳入到 vue 生命周期**
+
+
+
+##### mpvue
+
+在 mpvue 观望中
+
+mpvue 是一个典型的编译时 + 运行时的类 vue 小程序框架。看看 mpvue 官方的说明：
+
+<img src="./images/img31.png" style="zoom:80%;" />
+
+下面来简单分析 mpvue 源码，了解 mpvue 的编译跟运行时层面分别做了什么。
+
+
+
+ <img src="./images/img32.png" style="zoom:80%;" />
+
+可以看到，首先是 fork 了一分 vue 的 runtime 代码，然后在平台判断里面添加多了一个 mp 平台。mp 里面主要就是两个文件夹，一个是 compiler 代表编译，runtime 代表运行时。
+
+
+
+**编译阶段：**
+
+> mpvue\src\platforms\mp\compiler\index.js
+
+ <img src="./images/img33.png" style="zoom: 50%;" />
+
+判断是什么平台的小程序，现在基本支持微信、百度、阿里等
+
+
+
+> mpvue\src\platforms\mp\compiler\wx\config\astMap.js
+
+ <img src="./images/img34.png" style="zoom: 50%;" />
+
+一些 vue 与小程序的指令映射，当然，不止这一点，还有相关事件、attr 属性等的映射，具体可以查看 `mpvue\src\platforms\mp\compiler\wx` 这个目录下的代码
+
+
+
+除了上面哪些特定平台的指令，还有一些通用便签的：
+
+> mpvue\src\platforms\mp\compiler\common\tagMap.js
+
+```js
+// 与小程序标签进行映射
+export default {
+  'br': 'view',
+  'hr': 'view',
+
+  'p': 'view',
+  'h1': 'view',
+  'h2': 'view',
+  'h3': 'view',
+  'h4': 'view',
+  'h5': 'view',
+  'h6': 'view',
+  'abbr': 'view',
+  'address': 'view',
+  'b': 'view',
+  'bdi': 'view',
+  'bdo': 'view',
+  'blockquote': 'view',
+  'cite': 'view',
+  'code': 'view',
+  'del': 'view',
+  'ins': 'view',
+  'dfn': 'view',
+  'em': 'view',
+  'strong': 'view',
+  'samp': 'view',
+  'kbd': 'view',
+  'var': 'view',
+  'i': 'view',
+  'mark': 'view',
+  'pre': 'view',
+  'q': 'view',
+  'ruby': 'view',
+  'rp': 'view',
+  'rt': 'view',
+  's': 'view',
+  'small': 'view',
+  'sub': 'view',
+  'sup': 'view',
+  'time': 'view',
+  'u': 'view',
+  'wbr': 'view',
+
+  // 表单元素
+  'form': 'form',
+  'input': 'input',
+  'textarea': 'textarea',
+  'button': 'button',
+  'select': 'picker',
+  'option': 'view',
+  'optgroup': 'view',
+  'label': 'label',
+  'fieldset': 'view',
+  'datalist': 'picker',
+  'legend': 'view',
+  'output': 'view',
+
+  // 框架
+  'iframe': 'view',
+  // 图像
+  'img': 'image',
+  'canvas': 'canvas',
+  'figure': 'view',
+  'figcaption': 'view',
+
+  // 音视频
+  'audio': 'audio',
+  'source': 'audio',
+  'video': 'video',
+  'track': 'video',
+  // 链接
+  'a': 'navigator',
+  'nav': 'view',
+  'link': 'navigator',
+  // 列表
+  'ul': 'view',
+  'ol': 'view',
+  'li': 'view',
+  'dl': 'view',
+  'dt': 'view',
+  'dd': 'view',
+  'menu': 'view',
+  'command': 'view',
+
+  // 表格table
+  'table': 'view',
+  'caption': 'view',
+  'th': 'view',
+  'td': 'view',
+  'tr': 'view',
+  'thead': 'view',
+  'tbody': 'view',
+  'tfoot': 'view',
+  'col': 'view',
+  'colgroup': 'view',
+
+  // 样式
+  'div': 'view',
+  'main': 'view',
+  'span': 'label',
+  'header': 'view',
+  'footer': 'view',
+  'section': 'view',
+  'article': 'view',
+  'aside': 'view',
+  'details': 'view',
+  'dialog': 'view',
+  'summary': 'view',
+
+  'progress': 'progress',
+  'meter': 'progress',
+  'head': 'view',
+  'meta': 'view',
+  'base': 'text',
+  'area': 'navigator',
+
+  'script': 'view',
+  'noscript': 'view',
+  'embed': 'view',
+  'object': 'view',
+  'param': 'view',
+
+  // https://mp.weixin.qq.com/debug/wxadoc/dev/component/
+  // [...document.querySelectorAll('.markdown-section tbody td:first-child')].map(v => v.textContent).join(',\n')
+  'view': 'view',
+  'scroll-view': 'scroll-view',
+  'swiper': 'swiper',
+  'icon': 'icon',
+  'text': 'text',
+  'checkbox': 'checkbox',
+  'radio': 'radio',
+  'picker': 'picker',
+  'picker-view': 'picker-view',
+  'slider': 'slider',
+  'switch': 'switch',
+  'navigator': 'navigator',
+  'image': 'image',
+  'map': 'map',
+  'contact-button': 'contact-button',
+  'block': 'block'
+}
+```
+
+
+
+通过这些映射关系，那么在编译的时候，就可以进行转换了。
+
+
+
+**运行时阶段：**
+
+先来看运行时的入口文件
+
+> mpvue\src\platforms\mp\runtime\index.js
+
+ <img src="./images/img35.png" style="zoom:50%;" />
+
+往 Vue 身上挂载了一些方法：
+
+- initMP：初始化小程序一些事件：onLaunch、onLoad、onReady
+- updateDataToMP：调用 setData 通知小程序进行更新
+
+
+
+> mpvue\src\platforms\mp\runtime\index.js
+
+ <img src="./images/img36.png" style="zoom:50%;" />
+
+可以看到，重写了 Vue 的 $mount 方法，在 mount 的时候调用 initMP 进行小程序初始化事件
+
+
+
+那么什么时候初始化小程序的 App、Page 这些实例？答案在 createMP 里
+
+> mpvue\src\platforms\mp\runtime\lifecycle.js
+
+```js
+export function createMP ({ mpType, init }) {
+  if (!mpType) mpType = 'page'
+  if (mpType === 'app') {
+    global.App({
+      // 页面的初始数据
+      globalData: {
+        appOptions: {}
+      },
+
+      handleProxy (e) {
+        return this.rootVueVM.$handleProxyWithVue(e)
+      },
+
+      // Do something initial when launch.
+      onLaunch (options = {}) {
+        if (!this.rootVueVM) {
+          this.rootVueVM = init()
+          this.rootVueVM.$mp = {}
+        }
+        const mp = this.rootVueVM.$mp
+        mp.mpType = 'app'
+        mp.app = this
+        mp.status = 'launch'
+        this.globalData.appOptions = mp.appOptions = options
+        this.rootVueVM.$mount()
+      },
+
+      // Do something when app show.
+      onShow (options = {}) {
+        // 百度小程序onLaunch与onShow存在bug
+        // 如果this.rootVueVM不存在则初始化
+        if (!this.rootVueVM) {
+          this.rootVueVM = init()
+          this.rootVueVM.$mp = {}
+        }
+        const mp = this.rootVueVM.$mp
+        mp.status = 'show'
+        this.globalData.appOptions = mp.appOptions = options
+        callHook(this.rootVueVM, 'onShow', options)
+      },
+
+      // Do something when app hide.
+      onHide () {
+        const mp = this.rootVueVM.$mp
+        mp.status = 'hide'
+        callHook(this.rootVueVM, 'onHide')
+      },
+
+      onError (err) {
+        callHook(this.rootVueVM, 'onError', err)
+      },
+
+      onPageNotFound (err) {
+        callHook(this.rootVueVM, 'onPageNotFound', err)
+      }
+    })
+  }
+  if (mpType === 'page') {
+    const app = global.getApp()
+    global.Page({
+      // 页面的初始数据
+      data: {
+        $root: {}
+      },
+
+      handleProxy (e) {
+        return this.rootVueVM.$handleProxyWithVue(e)
+      },
+
+      // mp lifecycle for vue
+      // 生命周期函数--监听页面加载
+      onLoad (query) {
+        this.rootVueVM = init()
+        const mp = this.rootVueVM.$mp = {}
+        mp.mpType = 'page'
+        mp.page = this
+        mp.query = query
+        mp.status = 'load'
+        getGlobalData(app, this.rootVueVM)
+        this.rootVueVM.$mount()
+      },
+
+      // 生命周期函数--监听页面显示
+      onShow () {
+        const mp = this.rootVueVM.$mp
+        mp.page = this
+        mp.status = 'show'
+        callHook(this.rootVueVM, 'onShow')
+        // 只有页面需要 setData
+        this.rootVueVM.$nextTick(() => {
+          this.rootVueVM._initDataToMP()
+        })
+      },
+
+      // 生命周期函数--监听页面初次渲染完成
+      onReady () {
+        const mp = this.rootVueVM.$mp
+        mp.status = 'ready'
+        return _next(this.rootVueVM)
+      },
+
+      // 生命周期函数--监听页面隐藏
+      onHide () {
+        const mp = this.rootVueVM.$mp
+        mp.status = 'hide'
+        callHook(this.rootVueVM, 'onHide')
+        mp.page = null
+      },
+
+      // 生命周期函数--监听页面卸载
+      onUnload () {
+        const mp = this.rootVueVM.$mp
+        mp.status = 'unload'
+        callHook(this.rootVueVM, 'onUnload')
+        mp.page = null
+      },
+
+      // 页面相关事件处理函数--监听用户下拉动作
+      onPullDownRefresh () {
+        callHook(this.rootVueVM, 'onPullDownRefresh')
+      },
+
+      // 页面上拉触底事件的处理函数
+      onReachBottom () {
+        callHook(this.rootVueVM, 'onReachBottom')
+      },
+
+      // 用户点击右上角分享
+      onShareAppMessage (options) {
+        if (this.rootVueVM.$options.onShareAppMessage) {
+          callHook(this.rootVueVM, 'onShareAppMessage', options)
+        }
+      },
+
+      // Do something when page scroll
+      onPageScroll (options) {
+        callHook(this.rootVueVM, 'onPageScroll', options)
+      },
+
+      // 当前是 tab 页时，点击 tab 时触发
+      onTabItemTap (options) {
+        callHook(this.rootVueVM, 'onTabItemTap', options)
+      }
+    })
+  }
+  if (mpType === 'component') {
+    global.Component({
+      // 小程序原生的组件属性
+      properties: {},
+      // 页面的初始数据
+      data: {
+        $root: {}
+      },
+      methods: {
+        handleProxy (e) {
+          return this.rootVueVM.$handleProxyWithVue(e)
+        }
+      },
+      // mp lifecycle for vue
+      // 组件生命周期函数，在组件实例进入页面节点树时执行，注意此时不能调用 setData
+      created () {
+        this.rootVueVM = init()
+        initMpProps(this.rootVueVM)
+        this.properties = normalizeProperties(this.rootVueVM)
+        const mp = this.rootVueVM.$mp = {}
+        mp.mpType = 'component'
+        mp.status = 'created'
+        mp.page = this
+        this.rootVueVM.$mount()
+        callHook(this.rootVueVM, 'created')
+      },
+      // 组件生命周期函数，在组件实例进入页面节点树时执行
+      attached () {
+        const mp = this.rootVueVM.$mp
+        mp.status = 'attached'
+        callHook(this.rootVueVM, 'attached')
+      },
+      // 组件生命周期函数，在组件布局完成后执行，此时可以获取节点信息（使用 SelectorQuery ）
+      ready () {
+        const mp = this.rootVueVM.$mp
+        mp.status = 'ready'
+        callHook(this.rootVueVM, 'ready')
+        _next(this.rootVueVM)
+
+        // 只有页面需要 setData
+        this.rootVueVM.$nextTick(() => {
+          this.rootVueVM._initDataToMP()
+        })
+      },
+      // 组件生命周期函数，在组件实例被移动到节点树另一个位置时执行
+      moved () {
+        callHook(this.rootVueVM, 'moved')
+      },
+      // 组件生命周期函数，在组件实例被从页面节点树移除时执行
+      detached () {
+        const mp = this.rootVueVM.$mp
+        mp.status = 'detached'
+        callHook(this.rootVueVM, 'detached')
+      }
+    })
+  }
+}
+```
+
+可以看到，在这里，会判断是 Page 还是 App，分别初始化。
+
+
+
+最后就是数据发生变化，怎么去 setData 了
+
+> mpvue\src\platforms\mp\runtime\patch.js
+
+```js
+// patch ，最后没有去操作 dom，而是调用了 $updateDataToMP 去 setData
+export function patch () {
+  // 先执行 corePatch【就是 createPatchFunction 的返回值 patch 函数】
+  // 也就是执行 patch
+  corePatch.apply(this, arguments)
+  // 再执行 updateDataToMP 去 setData
+  this.$updateDataToMP()
+}
+```
+
+
+
+> mpvue\src\platforms\mp\runtime\render.js
+
+```js
+// 优化js变量动态变化时候引起全量更新
+// 优化每次 setData 都传递大量新数据
+export function updateDataToMP () {
+  const page = getPage(this)
+  if (!page) {
+    return
+  }
+
+  // 用来存储需要更新的数据
+  const data = {}
+  // 比较 data、props 数据
+  diffData(this, data)
+  // 添加防抖，防止频繁更新
+  throttleSetData(page.setData.bind(page), data)
+}
+```
+
+
+
+> mpvue\src\platforms\mp\runtime\diff-data.js
+
+```js
+export function diffData (vm, data) {
+  const vmData = vm._data || {}
+  const vmProps = vm._props || {}
+
+  // ...
+
+  if (vm._mpValueSet === 'done') {
+    // 第二次赋值才进行缩减操作
+    Object.keys(vmData).forEach((vmDataItemKey) => {
+      if (vmData[vmDataItemKey] instanceof Object) {
+        // 引用类型
+        minifyDeepData(rootKey, vmDataItemKey, vmData[vmDataItemKey], data, vm._mpValueSet, vm)
+      } else if (vmData[vmDataItemKey] !== undefined) {
+        // _data上的值属性只有要更新的时候才赋值
+        if (__keyPathOnThis[vmDataItemKey] === true) {
+          data[rootKey + '.' + vmDataItemKey] = vmData[vmDataItemKey]
+        }
+      }
+    })
+
+    Object.keys(vmProps).forEach((vmPropsItemKey) => {
+      if (vmProps[vmPropsItemKey] instanceof Object) {
+        // 引用类型
+        minifyDeepData(rootKey, vmPropsItemKey, vmProps[vmPropsItemKey], data, vm._mpValueSet, vm)
+      } else if (vmProps[vmPropsItemKey] !== undefined) {
+        data[rootKey + '.' + vmPropsItemKey] = vmProps[vmPropsItemKey]
+      }
+      // _props上的值属性只有要更新的时候才赋值
+    })
+    
+    // ...
+}
+```
+
+就是将 data、props 中需要更新的数据拿出来，放到 data = {} 中
+
+
+
+> mpvue\src\platforms\mp\runtime\render.js
+
+```js
+throttleSetData(page.setData.bind(page), data)
+```
+
+最后，setData，加了防抖，防止频繁 setData
+
+
+
+到此，mpvue 的编译、运行时的大概脉络已经出来了。跟上面说的类 vue 小程序原理基本是一样的。
 
 
 
 ##### uni-app
 
-uni-app 是一个典型的编译时+运行时的类 vue 小程序框架，这就意味着跟上面说的类 vue 小程序框架基本保持一致，不同的是 uni-app 内部做的优化。
+uni-app 是一个典型的编译时 + 运行时的类 vue 小程序框架，这就意味着跟上面说的类 vue 小程序框架基本保持一致，不同的是 uni-app 内部做的优化。
 
 **uni-app 内部优化策略：**
 
@@ -993,7 +1554,7 @@ uni-app 是一个典型的编译时+运行时的类 vue 小程序框架，这就
 
   如图，如果需要将 A 模块拖拽到 B，要想在小程序中实现路畅的跟手滑动是很困难的，因为小程序视图层和逻辑层分离，视图层不能运行 js，逻辑层没法直接操作 dom，只能通过线程通信，而线程通信成本是很高的
 
-  ![](/images/img24.png)
+   ![](/images/img24.png)
 
   一次 touchmove，小程序内部响应过程：
 
@@ -1001,20 +1562,21 @@ uni-app 是一个典型的编译时+运行时的类 vue 小程序框架，这就
 
   - 逻辑层计算好需要移动的位置，通过 setData 和 native 中间层通知视图层，即3、4
 
-    ![](/images/img25.png)
+     ![](/images/img25.png)
 
   而在 touchmove 过程中，会出现频繁的通信，每一次通信都需要四个步骤，这频繁通信带来的时间成本很可能会造成视图没办法在 16.7 毫秒内完成绘制，就会造成页面抖动或者卡顿。
 
-  除了拖拽交互，还有滚动、在for循环里对数据做格式修改，也会造成逻辑层和视图层频繁通讯。
+  除了拖拽交互，还有滚动、在 for 循环里对数据做格式修改，也会造成逻辑层和视图层频繁通讯。
 
-  其实，对于小程序来讲，webview 是有 js 环境的，但是不开放给开发者而已。大量开放 webview 里的js编写，开发者会直接操作 dom，影响性能体验和宿主微信的安全。所以小程序平台提出一种新规范，限制webview 里可运行的 js 的能力，这就是wxs。本质上，wxs 其实可以认为是被限制过的运行在 webview 环境里面的 js。
+  其实，对于小程序来讲，webview 是有 js 环境的，但是不开放给开发者而已。大量开放 webview 里的 js 编写，开发者会直接操作 dom，影响性能体验和宿主微信的安全。所以小程序平台提出一种新规范，可以在 webview 里使用 js 操作 dom，这就是 wxs。本质上，wxs 其实可以认为是被限制过的运行在 webview 环境里面的 js。
 
   **wxs 有如下特征：**
 
   - WXS 是被限制过的 JavaScript，可以进行一些简单的逻辑运算
-- WXS 的运行环境和其他 JavaScript 代码是隔离的，WXS 中不能调用其他 JavaScript 文件中定义的函数，也不能调用小程序提供的 API
-  - WXS 可以监听 touch 事件，处理滚动、拖动交互
-
+  - WXS 的运行环境和其他 JavaScript 代码是隔离的，WXS 中不能调用其他 JavaScript 文件中定义的函数，也不能调用小程序提供的 API
+  
+  - WXS 可以监听 touch 事件，处理滚动、拖动交
+  
   **uni-app 对 wxs 的支持：**
   
   ```js
@@ -1025,13 +1587,13 @@ uni-app 是一个典型的编译时+运行时的类 vue 小程序框架，这就
 
 
 
-- **改造 vue，移除 vnode**(vue瘦身：提升运行性能和加载性能)
+- **改造 vue，移除 vnode**(vue 瘦身：提升运行性能和加载性能)
 
   根据 uni-app 的运行时原理，可以得知，vue 实例负责数据管理，小程序 page 实例负责视图渲染，页面 dom 由小程序负责生成，小程序实例只接受 data 数据。而 vue 维护的 vnode 无法和小程序的真实 dom 对应，也就是说 vue 的 vnode 在小程序端没用，可以移除。
 
   所以，对应 uni-app 改造的 vue 在三方面做了优化
 
-  - compiler：取消 optimize 步骤，因为这一步骤是为了标记静态节点，而 uni-app 中的 vue 只负责数据，不需要关注 dom 节点
+  - compiler：取消 optimize 步骤，因为这一步是为了标记静态节点，而 uni-app 中的 vue 只负责数据，不需要关注 dom 节点
 
   - render： 不生成 vnode
 
@@ -1041,7 +1603,8 @@ uni-app 是一个典型的编译时+运行时的类 vue 小程序框架，这就
     
     >  改造后的 vue 源码，vue runtime 大小减少了 1/3 左右，同时提升了小程序的运行性能和加载性能。
     
-    
+
+  
 
 - **减少 setData 调用次数**(Vue.nextTick)
 
